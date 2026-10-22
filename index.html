@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RefractID — Zero-Surveillance Campus Safety</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 <style>
 :root {
   --ink: #0f172a;
@@ -77,12 +78,13 @@ body.alarm {
   position: relative;
   z-index: 10;
 }
-.brand { display: flex; align-items: center; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .brand-mark {
   width: 28px; height: 28px;
   background: var(--ink);
   clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
   position: relative;
+  flex-shrink: 0;
 }
 .brand-mark::after {
   content: '';
@@ -106,7 +108,7 @@ body.alarm {
   border-left: 1px solid var(--hairline);
 }
 
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
 .mode-chip {
   display: inline-flex;
@@ -280,6 +282,36 @@ body.alarm .panel::after {
   margin-top: 4px;
 }
 
+/* ============ ROLE BADGES (NEW) ============ */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 3px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+.role-badge svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+.role-student {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+}
+.role-admin {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border: 1px solid rgba(217, 119, 6, 0.5);
+}
+
 /* ============ SECTIONS ============ */
 .section {
   padding: 20px 14px 20px 0;
@@ -438,6 +470,10 @@ body.alarm .panel::after {
   margin-top: 10px;
 }
 .btn-safe:hover { background: #047857; }
+.btn-safe:disabled {
+  background: var(--muted-2);
+  cursor: not-allowed;
+}
 
 /* ============ LEDGER ============ */
 dl.ledger {
@@ -540,13 +576,19 @@ dl.ledger dd {
   margin-top: 10px;
 }
 
-/* ============ FLOOR PLAN ============ */
+/* ============ FLOOR PLAN (3D CANVAS) ============ */
 .floorplan {
   border: 1px solid var(--hairline-strong);
   background: linear-gradient(160deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
   position: relative;
   overflow: hidden;
+  height: 420px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
+.floorplan:active { cursor: grabbing; }
 .floorplan::before {
   content: '';
   position: absolute;
@@ -556,12 +598,51 @@ dl.ledger dd {
     linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size: 20px 20px;
   pointer-events: none;
+  z-index: 0;
 }
-.floorplan svg {
+.floorplan canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   position: relative;
+  z-index: 1;
+}
+.floorplan .hint {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  pointer-events: none;
+  z-index: 2;
+}
+.floorplan .legend {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 8px 10px;
+  border: 1px solid var(--hairline);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  pointer-events: none;
+  z-index: 2;
+}
+.floorplan .legend div { display: flex; align-items: center; gap: 6px; }
+.floorplan .legend .swatch {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* ============ LOCKED LIST ============ */
@@ -628,6 +709,18 @@ dl.ledger dd {
   margin-top: 2px;
   letter-spacing: 0.02em;
 }
+.muster-room {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 1px 6px;
+  margin-left: 6px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
 
 /* ============ AUDIT ============ */
 #auditLog {
@@ -678,6 +771,548 @@ dl.ledger dd {
 
 /* ============ SCROLLBAR ============ */
 ::selection { background: var(--accent-soft); color: var(--ink); }
+
+
+/* ================================================================
+   MOBILE TABS
+   ================================================================ */
+.mobile-tabs {
+  display: none;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--hairline);
+  padding: 8px;
+  gap: 8px;
+  z-index: 9;
+}
+.mobile-tabs button {
+  flex: 1;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.mobile-tabs button.active {
+  background: var(--ink);
+  color: white;
+}
+
+
+/* ================================================================
+   CURRENT SESSION CARD
+   ================================================================ */
+.current-session {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.current-session.show { display: flex; }
+.current-session .avatar {
+  width: 36px; height: 36px;
+  background: var(--ink);
+  color: white;
+  display: grid; place-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  flex-shrink: 0;
+}
+.current-session .info { flex: 1; min-width: 0; }
+.current-session .session-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current-session .session-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+/* ================================================================
+   LOGOUT BUTTON (NEW)
+   ================================================================ */
+.session-logout {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--hairline-strong);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.18s;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  flex-shrink: 0;
+}
+.session-logout:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.session-logout svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* ================================================================
+   CHECK-IN BUTTONS
+   ================================================================ */
+.btn-scan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  position: relative;
+  overflow: hidden;
+}
+.btn-scan:hover { background: #0369a1; }
+.btn-scan svg { flex-shrink: 0; }
+
+.btn-link-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.btn-link {
+  background: none;
+  border: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--hairline-strong);
+  letter-spacing: 0.02em;
+}
+.btn-link:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+
+/* ================================================================
+   CHARTS
+   ================================================================ */
+
+/* Per-room bars */
+.room-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+.room-bar-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+}
+.room-bar-row .bar-label {
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.room-bar-row .bar-track {
+  height: 10px;
+  background: rgba(15, 23, 42, 0.05);
+  border: 1px solid var(--hairline);
+  position: relative;
+  overflow: hidden;
+}
+.room-bar-row .bar-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #0369a1);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.room-bar-row[data-type="lecture"] .bar-fill {
+  background: linear-gradient(90deg, #6366f1, #4338ca);
+}
+body.alarm .room-bar-row .bar-fill {
+  background: linear-gradient(90deg, var(--danger), #b91c1c);
+}
+.room-bar-row .bar-value {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Muster donut */
+.donut-wrap {
+  display: none;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 20px;
+}
+.donut-wrap.show { display: grid; }
+.donut {
+  width: 120px;
+  height: 120px;
+  position: relative;
+}
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut .donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.donut .donut-center .big {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.donut .donut-center .small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+}
+.donut-legend .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+.donut-legend .swatch {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+}
+.donut-legend .count {
+  margin-left: auto;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* Activity sparkline */
+.sparkline-wrap {
+  position: relative;
+  height: 72px;
+  border: 1px solid var(--hairline);
+  background: rgba(15, 23, 42, 0.02);
+  padding: 8px 8px 20px 8px;
+}
+.sparkline-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sparkline-wrap .axis-label {
+  position: absolute;
+  bottom: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--muted-2);
+  letter-spacing: 0.04em;
+}
+.sparkline-wrap .axis-label.left { left: 8px; }
+.sparkline-wrap .axis-label.right { right: 8px; }
+
+
+/* ================================================================
+   DEMO CONTROLS
+   ================================================================ */
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.demo-controls .btn {
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+  justify-content: center;
+}
+
+
+/* ================================================================
+   MODALS
+   ================================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-backdrop.show {
+  display: flex;
+  animation: fadeInModal 0.25s ease;
+}
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 60px -20px rgba(15, 23, 42, 0.4);
+  padding: 26px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+}
+.modal-content h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.modal-content .modal-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.modal-actions .btn,
+.modal-actions .btn-scan {
+  flex: 1;
+}
+
+
+/* ================================================================
+   SCANNER VIDEO
+   ================================================================ */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #0f172a;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+}
+#qrVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.scan-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 62%;
+  aspect-ratio: 1;
+  max-width: 240px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
+  pointer-events: none;
+}
+.scan-frame::before,
+.scan-frame::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: white;
+  border-style: solid;
+}
+.scan-frame::before {
+  top: -2px; left: -2px;
+  border-width: 3px 0 0 3px;
+}
+.scan-frame::after {
+  bottom: -2px; right: -2px;
+  border-width: 0 3px 3px 0;
+}
+
+
+/* ================================================================
+   MANUAL INPUT
+   ================================================================ */
+.manual-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--hairline-strong);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  outline: none;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: 0.2s;
+}
+.manual-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+
+/* ================================================================
+   QR REFERENCE
+   ================================================================ */
+.qr-reference {
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid var(--hairline);
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.qr-group-header {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 10px 0 6px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 4px;
+}
+.qr-group-header:first-child { padding-top: 0; }
+.qr-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.qr-item:last-child { border-bottom: none; }
+.qr-location {
+  color: var(--ink);
+  font-weight: 500;
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  margin-bottom: 2px;
+}
+.qr-item code {
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink);
+  color: white;
+  padding: 12px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 40px -10px rgba(15, 23, 42, 0.4);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  z-index: 300;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.toast-danger { background: var(--danger); }
+.toast.toast-safe { background: var(--safe); }
+.toast.toast-accent { background: var(--accent); }
+
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 900px) {
+  body { overflow: auto; height: auto; min-height: 100vh; }
+  .mobile-tabs { display: flex; }
+  main {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 10px;
+    gap: 10px;
+  }
+  .panel {
+    height: auto;
+    max-height: calc(100vh - 130px);
+    display: none;
+  }
+  .panel.active { display: block; }
+  .student-panel, .security-panel { padding: 18px 16px 22px; }
+  .brand-tag { display: none; }
+  .metric-value { font-size: 2.2rem; }
+  .floorplan { height: 320px; }
+  .topbar { padding: 0 14px; }
+  .topbar-actions { gap: 6px; }
+  .btn { padding: 7px 12px; font-size: 0.72rem; }
+  .mode-chip { padding: 5px 10px; font-size: 0.62rem; }
+  .btn-text { font-size: 0.72rem; padding: 7px 3px; }
+  .donut-wrap { grid-template-columns: 100px 1fr; }
+  .donut { width: 100px; height: 100px; }
+  .donut .donut-center .big { font-size: 1.25rem; }
+  .room-bars { grid-template-columns: 1fr; gap: 8px; }
+}
+@media (max-width: 400px) {
+  .topbar-actions .btn#autoDemoBtn { display: none; }
+  .brand-name { font-size: 1rem; }
+  .floorplan { height: 280px; }
+}
 </style>
 </head>
 <body>
@@ -698,14 +1333,43 @@ dl.ledger dd {
   </div>
 </header>
 
+<div class="mobile-tabs" id="mobileTabs">
+  <button data-view="student" class="active">Student</button>
+  <button data-view="security">Admin</button>
+</div>
+
 <main>
-  <section class="panel student-panel">
+  <section class="panel student-panel active" data-panel="student">
     <div class="panel-header">
       <div>
         <h1>Student Wallet</h1>
         <p>zero-knowledge credentials</p>
+        <span class="role-badge role-student">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Student Access
+        </span>
       </div>
       <div class="idx">/01</div>
+    </div>
+
+    <div class="section" id="sessionSection" style="display:none;">
+      <div class="current-session show" id="currentSession">
+        <div class="avatar" id="sessionAvatar">?</div>
+        <div class="info">
+          <div class="session-name" id="sessionName">&mdash;</div>
+          <div class="session-meta" id="sessionMeta">&mdash;</div>
+        </div>
+        <button class="session-logout" id="logoutBtn" title="Check out of this room">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="section">
@@ -723,7 +1387,19 @@ dl.ledger dd {
         <div class="token-code" id="tokenCode">8f9a-c2e1-77b0-4d3a</div>
         <div class="token-sub">rotates 30s · zk-SNARK proof</div>
       </div>
-      <button class="btn-primary" id="checkInBtn">Check in to Blok L Lab</button>
+      <button class="btn-scan" id="scanQrBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+        </svg>
+        Scan Lab QR Code
+      </button>
+      <div class="btn-link-row">
+        <button class="btn-link" id="manualEntryBtn">Enter code manually</button>
+        <button class="btn-link" id="showQrRefBtn">View QR reference</button>
+      </div>
     </div>
 
     <div class="section">
@@ -739,13 +1415,25 @@ dl.ledger dd {
         Your identity was accessed at <span id="receiptTime">&mdash;</span> by the Chief Security Officer due to a Blok L fire alarm. This access was authorized by a dual-signature event and logged immutably.
       </div>
     </div>
+
+    <div class="section" id="studentSafeSection" style="display:none;">
+      <div class="section-label" style="color: var(--safe);">Emergency Muster</div>
+      <p class="body-text" style="margin-bottom: 12px;">Fire alarm active. Proceed to DK7 and confirm your safety.</p>
+      <button class="btn-safe" id="studentMarkSafeBtn">I am safe at DK7</button>
+    </div>
   </section>
 
-  <section class="panel security-panel">
+  <section class="panel security-panel" data-panel="security">
     <div class="panel-header">
       <div>
         <h1>Command Dashboard</h1>
         <p>faculty of engineering · blok L</p>
+        <span class="role-badge role-admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          Administrator
+        </span>
       </div>
       <div class="idx">/02</div>
     </div>
@@ -756,7 +1444,7 @@ dl.ledger dd {
         <div class="metric">
           <div class="metric-label">Verified Occupants</div>
           <div class="metric-value" id="occupancyValue">0</div>
-          <div class="metric-sub">Blok L Lab · anonymous count</div>
+          <div class="metric-sub">Blok L · anonymous count</div>
         </div>
         <div class="metric danger">
           <div class="metric-label">Unaccounted</div>
@@ -768,20 +1456,88 @@ dl.ledger dd {
 
     <div class="section">
       <div class="section-label">Live Floor Plan</div>
-      <div class="floorplan">
-        <svg viewBox="0 0 500 240" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="20" width="140" height="140" fill="rgba(2, 132, 199, 0.03)" stroke="#94a3b8" stroke-width="1"/>
-          <rect x="180" y="20" width="140" height="140" fill="rgba(2, 132, 199, 0.03)" stroke="#94a3b8" stroke-width="1"/>
-          <rect x="340" y="20" width="140" height="140" fill="rgba(2, 132, 199, 0.03)" stroke="#94a3b8" stroke-width="1"/>
-          <rect x="20" y="180" width="460" height="40" fill="rgba(15, 23, 42, 0.02)" stroke="#94a3b8" stroke-width="1"/>
-          <line x1="20" y1="20" x2="20" y2="160" stroke="#0284c7" stroke-width="2"/>
-          <text x="90" y="44" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle" letter-spacing="0.5">LAB 1</text>
-          <text x="250" y="44" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle" letter-spacing="0.5">LAB 2</text>
-          <text x="410" y="44" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle" letter-spacing="0.5">LAB 3</text>
-          <text x="90" y="205" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1.5">CORRIDOR</text>
-          <text x="410" y="205" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1.5">EXIT DK7</text>
-          <g id="occupantDots"></g>
-        </svg>
+      <div class="floorplan" id="floorplanWrap">
+        <canvas id="floorCanvas"></canvas>
+        <div class="legend">
+          <div><span class="swatch" style="background: var(--accent);"></span>Occupant</div>
+          <div><span class="swatch" style="background: var(--danger);"></span>Unaccounted</div>
+          <div><span class="swatch" style="background: var(--safe);"></span>Safe at DK7</div>
+        </div>
+        <div class="hint">Drag to rotate · auto-rotates when idle</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Occupancy by Room</div>
+      <div class="room-bars" id="roomBars">
+        <div class="room-bar-row" data-room="LAB-1" data-type="lab">
+          <span class="bar-label">LAB 1</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LAB-2" data-type="lab">
+          <span class="bar-label">LAB 2</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LAB-3" data-type="lab">
+          <span class="bar-label">LAB 3</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LAB-4" data-type="lab">
+          <span class="bar-label">LAB 4</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LH-1" data-type="lecture">
+          <span class="bar-label">LH 1</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LH-2" data-type="lecture">
+          <span class="bar-label">LH 2</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LH-3" data-type="lecture">
+          <span class="bar-label">LH 3</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+        <div class="room-bar-row" data-room="LH-4" data-type="lecture">
+          <span class="bar-label">LH 4</span>
+          <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="bar-value">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="donutSection" style="display:none;">
+      <div class="section-label">Muster Progress</div>
+      <div class="donut-wrap show" id="donutWrap">
+        <div class="donut">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(15, 23, 42, 0.06)" stroke-width="14"/>
+            <circle id="donutArc" cx="50" cy="50" r="42" fill="none" stroke="var(--safe)" stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 264"/>
+          </svg>
+          <div class="donut-center">
+            <div class="big" id="donutPercent">0%</div>
+            <div class="small">SAFE</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="row">
+            <span class="swatch" style="background: var(--safe);"></span>
+            <span>Safe at DK7</span>
+            <span class="count" id="legendSafe">0</span>
+          </div>
+          <div class="row">
+            <span class="swatch" style="background: var(--danger);"></span>
+            <span>Unaccounted</span>
+            <span class="count" id="legendMissing">0</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -810,6 +1566,28 @@ dl.ledger dd {
     </div>
 
     <div class="section">
+      <div class="section-label">Demo Controls</div>
+      <div class="demo-controls">
+        <button class="btn" id="simulate5Btn">+5 Students</button>
+        <button class="btn" id="simulate10Btn">+10 Students</button>
+        <button class="btn" id="markAllSafeBtn">Mark All Safe</button>
+      </div>
+      <p class="footnote">Up to 20 occupants per demo · 8 rooms across Blok L. Use Auto Demo for a scripted walkthrough.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Activity Timeline</div>
+      <div class="sparkline-wrap">
+        <svg id="sparklineSvg" viewBox="0 0 300 44" preserveAspectRatio="none">
+          <path id="sparklinePath" d="" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <path id="sparklineArea" d="" fill="var(--accent-soft)" stroke="none"/>
+        </svg>
+        <span class="axis-label left">start</span>
+        <span class="axis-label right" id="sparklineMax">0</span>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-label">Immutable Audit Trail</div>
       <div id="auditLog">
         <div class="audit-entry empty">No events recorded.</div>
@@ -818,90 +1596,579 @@ dl.ledger dd {
   </section>
 </main>
 
+<!-- ================================================================
+     MODALS
+     ================================================================ -->
+<div class="modal-backdrop" id="scannerModal">
+  <div class="modal-content">
+    <h2>Scan Lab QR Code</h2>
+    <div class="modal-sub">point camera at door QR code</div>
+    <div class="video-wrap">
+      <video id="qrVideo" autoplay playsinline muted></video>
+      <div class="scan-frame"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelScanBtn">Cancel</button>
+      <button class="btn" id="scanManualBtn">Manual Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="manualModal">
+  <div class="modal-content">
+    <h2>Enter Room Code</h2>
+    <div class="modal-sub">type the code printed below the QR</div>
+    <input type="text" class="manual-input" id="manualInput" placeholder="REFRACT:LAB-1" autocomplete="off" autocapitalize="characters">
+    <div class="modal-actions">
+      <button class="btn" id="cancelManualBtn">Cancel</button>
+      <button class="btn" id="submitManualBtn" style="background: var(--accent); color: white; border-color: var(--accent);">Register</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="qrRefModal">
+  <div class="modal-content">
+    <h2>QR Codes to Generate</h2>
+    <div class="modal-sub">encode each value into its own QR code</div>
+    <div class="qr-reference">
+      <div class="qr-group-header">Labs</div>
+      <div class="qr-item">
+        <span class="qr-location">High Voltage Lab</span>
+        <code>REFRACT:LAB-1</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Robotics Lab</span>
+        <code>REFRACT:LAB-2</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Chemistry Lab</span>
+        <code>REFRACT:LAB-3</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Computing Lab</span>
+        <code>REFRACT:LAB-4</code>
+      </div>
+      <div class="qr-group-header">Lecture Halls</div>
+      <div class="qr-item">
+        <span class="qr-location">Lecture Hall 1</span>
+        <code>REFRACT:LH-1</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Lecture Hall 2</span>
+        <code>REFRACT:LH-2</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Lecture Hall 3</span>
+        <code>REFRACT:LH-3</code>
+      </div>
+      <div class="qr-item">
+        <span class="qr-location">Lecture Hall 4</span>
+        <code>REFRACT:LH-4</code>
+      </div>
+      <div class="qr-group-header">Shared</div>
+      <div class="qr-item">
+        <span class="qr-location">Main Entrance / Corridor</span>
+        <code>REFRACT:ENTRANCE</code>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="closeQrRefBtn" style="background: var(--ink); color: white; border-color: var(--ink);">Got It</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 (function() {
-  const channel = new BroadcastChannel('refractid-demo');
-  const $ = id => document.getElementById(id);
+  'use strict';
 
-  const state = {
-    occupants: [],
-    breakGlass: false,
-    safe: new Set(),
-    auditLog: []
-  };
+  // ================================================================
+  // CONSTANTS
+  // ================================================================
+  const CHANNEL_NAME = 'refractid-demo';
+  const STORAGE_KEY = 'refractid-state-v4';
+  const MAX_OCCUPANTS = 20;
 
-  const NAMES = [
-    { name: 'Aisyah Rahman', matric: 'U2001234/1', medical: 'Asthma', room: 0 },
-    { name: 'Kumar Selvam', matric: 'U2002345/1', medical: 'None', room: 1 },
-    { name: 'Lim Wei Xuan', matric: 'U2003456/1', medical: 'Mobility assistance', room: 2 }
+  // Room definitions — Blok L campus layout
+  // Row 1 (z 0–4): Labs · Row 2 (z 6–10): Lecture Halls · Corridor between
+  const ROOMS = [
+    { id: 'LAB-1', name: 'High Voltage Lab', type: 'lab',     x0: 0,    z0: 0, x1: 4,    z1: 4 },
+    { id: 'LAB-2', name: 'Robotics Lab',     type: 'lab',     x0: 4.5,  z0: 0, x1: 8.5,  z1: 4 },
+    { id: 'LAB-3', name: 'Chemistry Lab',    type: 'lab',     x0: 9,    z0: 0, x1: 13,   z1: 4 },
+    { id: 'LAB-4', name: 'Computing Lab',    type: 'lab',     x0: 13.5, z0: 0, x1: 17.5, z1: 4 },
+    { id: 'LH-1',  name: 'Lecture Hall 1',   type: 'lecture', x0: 0,    z0: 6, x1: 4,    z1: 10 },
+    { id: 'LH-2',  name: 'Lecture Hall 2',   type: 'lecture', x0: 4.5,  z0: 6, x1: 8.5,  z1: 10 },
+    { id: 'LH-3',  name: 'Lecture Hall 3',   type: 'lecture', x0: 9,    z0: 6, x1: 13,   z1: 10 },
+    { id: 'LH-4',  name: 'Lecture Hall 4',   type: 'lecture', x0: 13.5, z0: 6, x1: 17.5, z1: 10 }
+  ];
+  const CORRIDOR = { x0: 0, z0: 4, x1: 17.5, z1: 6 };
+  const WALL_H = 2.4;
+
+  const ISO_X = Math.cos(Math.PI / 6);
+  const ISO_Y = Math.sin(Math.PI / 6);
+
+  // Student pool — 20 individuals
+  const ALL_STUDENTS = [
+    { name: 'Aisyah Rahman', matric: 'U2001234/1', medical: 'Asthma' },
+    { name: 'Kumar Selvam', matric: 'U2002345/1', medical: 'None' },
+    { name: 'Lim Wei Xuan', matric: 'U2003456/1', medical: 'Mobility assistance' },
+    { name: 'Nurul Huda', matric: 'U2004567/1', medical: 'None' },
+    { name: 'Tan Jia Hui', matric: 'U2005678/1', medical: 'None' },
+    { name: 'Muhammad Faris', matric: 'U2006789/1', medical: 'Diabetes' },
+    { name: 'Siti Nurhaliza', matric: 'U2007890/1', medical: 'None' },
+    { name: 'Raj Patel', matric: 'U2008901/1', medical: 'None' },
+    { name: 'Wong Xin Yi', matric: 'U2009012/1', medical: 'Asthma' },
+    { name: 'Ahmad Syafiq', matric: 'U2010123/1', medical: 'None' },
+    { name: 'Priya Nair', matric: 'U2011234/1', medical: 'Epilepsy' },
+    { name: 'Lee Chee Ming', matric: 'U2012345/1', medical: 'None' },
+    { name: 'Nur Aisyah', matric: 'U2013456/1', medical: 'None' },
+    { name: 'Arjun Reddy', matric: 'U2014567/1', medical: 'None' },
+    { name: 'Chen Wei Ling', matric: 'U2015678/1', medical: 'Visual impairment' },
+    { name: 'Hafiz Ibrahim', matric: 'U2016789/1', medical: 'None' },
+    { name: 'Kavitha Subramaniam', matric: 'U2017890/1', medical: 'None' },
+    { name: 'Ong Shi Yi', matric: 'U2018901/1', medical: 'None' },
+    { name: 'Faizal Ramli', matric: 'U2019012/1', medical: 'Heart condition' },
+    { name: 'Sarah Tan', matric: 'U2020123/1', medical: 'None' }
   ];
 
-  const ROOM_CENTERS = [[90, 90], [250, 90], [410, 90]];
+  // ================================================================
+  // STATE
+  // ================================================================
+  let state = {
+    occupants: [],
+    breakGlass: false,
+    safe: [],
+    auditLog: [],
+    timeline: [],
+    mySessionId: null
+  };
 
+  // ================================================================
+  // ELEMENTS
+  // ================================================================
+  const $ = (id) => document.getElementById(id);
+  const channel = new BroadcastChannel(CHANNEL_NAME);
+
+  // ================================================================
+  // UTILITIES
+  // ================================================================
   function randomHex(len) {
-    return Array.from({length: len}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    let out = '';
+    for (let i = 0; i < len; i++) out += Math.floor(Math.random() * 16).toString(16);
+    return out;
   }
   function shortToken() {
     return `${randomHex(4)}-${randomHex(4)}-${randomHex(4)}-${randomHex(4)}`;
+  }
+  function initials(name) {
+    return name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  }
+  function showToast(msg, variant) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.className = 'toast show' + (variant ? ' toast-' + variant : '');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+  function parseQrCode(code) {
+    if (!code) return null;
+    const cleaned = code.trim().toUpperCase();
+    const match = cleaned.match(/^(?:REFRACT:)?(LAB-\d+|LH-\d+|ENTRANCE)$/);
+    return match ? match[1] : null;
+  }
+  function roomForLabId(labId) {
+    return ROOMS.find(r => r.id === labId);
   }
   function setMode(mode) {
     $('modeLabel').textContent = mode === 'alarm' ? 'Break-Glass Active' : 'Normal Ops';
     document.body.classList.toggle('alarm', mode === 'alarm');
   }
-
-  function renderDots() {
-    const g = $('occupantDots');
-    g.innerHTML = '';
-    state.occupants.forEach((occ, i) => {
-      const [baseX, baseY] = ROOM_CENTERS[occ.room] || ROOM_CENTERS[1];
-      const offsetX = (i % 3) * 16 - 16;
-      const isSafe = state.safe.has(occ.id);
-      const color = state.breakGlass
-        ? (isSafe ? '#059669' : '#dc2626')
-        : '#0284c7';
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('cx', baseX + offsetX);
-      dot.setAttribute('cy', baseY);
-      dot.setAttribute('r', 5);
-      dot.setAttribute('fill', color);
-      dot.setAttribute('class', 'occupant-dot');
-      g.appendChild(dot);
-    });
+  function getMySession() {
+    if (!state.mySessionId) return null;
+    return state.occupants.find(o => o.id === state.mySessionId) || null;
   }
 
-  function render() {
-    $('occupancyValue').textContent = state.occupants.length;
-    $('unaccountedValue').textContent = state.breakGlass
-      ? state.occupants.filter(o => !state.safe.has(o.id)).length
-      : '\u2014';
+  // ================================================================
+  // PERSISTENCE
+  // ================================================================
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        state = {
+          occupants: parsed.occupants || [],
+          breakGlass: parsed.breakGlass || false,
+          safe: parsed.safe || [],
+          auditLog: parsed.auditLog || [],
+          timeline: parsed.timeline || [],
+          mySessionId: parsed.mySessionId || null
+        };
+      }
+    } catch (e) {}
+  }
+  function broadcast() {
+    channel.postMessage({ type: 'state', state: state });
+    saveState();
+  }
 
-    const list = $('lockedList');
-    if (state.occupants.length === 0) {
-      list.innerHTML = '<li class="empty">No occupants logged yet.</li>';
+  // ================================================================
+  // 3D ISOMETRIC RENDERER
+  // ================================================================
+  const canvas = $('floorCanvas');
+  const ctx = canvas.getContext('2d');
+  let angle = -Math.PI / 4;
+  let scale = 30;
+  let canvasW = 0, canvasH = 0;
+  let centerX = 0, centerY = 0;
+  let isDragging = false;
+  let lastInteraction = 0;
+  let autoRotate = true;
+  let touchStartX = 0;
+  let dpr = window.devicePixelRatio || 1;
+
+  function resizeCanvas() {
+    const wrap = $('floorplanWrap');
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    canvasW = rect.width;
+    canvasH = rect.height;
+    canvas.width = canvasW * dpr;
+    canvas.height = canvasH * dpr;
+    canvas.style.width = canvasW + 'px';
+    canvas.style.height = canvasH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Campus now spans 17.5 (X) x 10 (Z) + walls
+    const projectedWidth = 24;
+    const projectedHeight = 15;
+    scale = Math.min(canvasW / projectedWidth, canvasH / projectedHeight) * 1.02;
+    centerX = canvasW / 2;
+    centerY = canvasH / 2 + 14;
+  }
+
+  function isoProject(x, y, z) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const rx = x * cos - z * sin;
+    const rz = x * sin + z * cos;
+    const screenX = (rx - rz) * ISO_X * scale;
+    const screenY = (rx + rz) * ISO_Y * scale - y * scale;
+    return [screenX + centerX, screenY + centerY];
+  }
+
+  function polygonPath(points) {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+    ctx.closePath();
+  }
+
+  function drawRoom(room) {
+    const isAlarm = state.breakGlass;
+    const isLab = room.type === 'lab';
+
+    // Floor tint based on room type
+    let floorColor;
+    if (isAlarm) {
+      floorColor = 'rgba(220, 38, 38, 0.055)';
+    } else if (isLab) {
+      floorColor = 'rgba(2, 132, 199, 0.055)';
     } else {
-      list.innerHTML = state.occupants.map(o =>
-        `<li><span>Token ${o.id.slice(0,12)}&hellip;</span><span class="lock-label">Encrypted</span></li>`
-      ).join('');
+      floorColor = 'rgba(99, 102, 241, 0.055)';
     }
 
+    // Floor
+    const floorCorners = [
+      [room.x0, 0, room.z0],
+      [room.x1, 0, room.z0],
+      [room.x1, 0, room.z1],
+      [room.x0, 0, room.z1]
+    ].map(p => isoProject(p[0], p[1], p[2]));
+    polygonPath(floorCorners);
+    ctx.fillStyle = floorColor;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Back wall
+    const backWall = [
+      [room.x0, 0, room.z1],
+      [room.x1, 0, room.z1],
+      [room.x1, WALL_H, room.z1],
+      [room.x0, WALL_H, room.z1]
+    ].map(p => isoProject(p[0], p[1], p[2]));
+    polygonPath(backWall);
+    ctx.fillStyle = isAlarm ? 'rgba(254, 226, 226, 0.85)' : 'rgba(241, 245, 249, 0.85)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.stroke();
+
+    // Right wall
+    const rightWall = [
+      [room.x1, 0, room.z0],
+      [room.x1, 0, room.z1],
+      [room.x1, WALL_H, room.z1],
+      [room.x1, WALL_H, room.z0]
+    ].map(p => isoProject(p[0], p[1], p[2]));
+    polygonPath(rightWall);
+    ctx.fillStyle = isAlarm ? 'rgba(252, 205, 205, 0.9)' : 'rgba(226, 232, 240, 0.9)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.stroke();
+
+    // Room label above wall
+    const labelPos = isoProject((room.x0 + room.x1) / 2, WALL_H + 0.55, (room.z0 + room.z1) / 2);
+    ctx.fillStyle = isAlarm ? '#dc2626' : (isLab ? '#0284c7' : '#4338ca');
+    ctx.font = 'bold 9px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(room.id, labelPos[0], labelPos[1]);
+  }
+
+  function drawCorridor() {
+    const c = CORRIDOR;
+    const corners = [
+      [c.x0, 0, c.z0],
+      [c.x1, 0, c.z0],
+      [c.x1, 0, c.z1],
+      [c.x0, 0, c.z1]
+    ].map(p => isoProject(p[0], p[1], p[2]));
+    polygonPath(corners);
+    ctx.fillStyle = state.breakGlass ? 'rgba(220, 38, 38, 0.03)' : 'rgba(15, 23, 42, 0.025)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Corridor label
+    const labelPos = isoProject((c.x0 + c.x1) / 2, 0.05, (c.z0 + c.z1) / 2);
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.6)';
+    ctx.font = '7px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('C O R R I D O R', labelPos[0], labelPos[1]);
+
+    // DK7 exit markers at both ends
+    [[c.x0 + 0.4], [c.x1 - 0.4]].forEach(([ex]) => {
+      const exitPos = isoProject(ex, 0, c.z1 - 0.2);
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(exitPos[0], exitPos[1], 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Label DK7 at right end
+    const exitLabelPos = isoProject(c.x1 - 0.4, 0.2, c.z1 - 0.2);
+    ctx.fillStyle = '#059669';
+    ctx.font = 'bold 7px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('DK7', exitLabelPos[0], exitLabelPos[1] - 6);
+  }
+
+  function getOccupantPosition(occ, idxInRoom) {
+    const room = roomForLabId(occ.room);
+    if (!room) {
+      // Corridor — spread along the middle
+      const c = CORRIDOR;
+      const t = (idxInRoom % 8) / 8;
+      return [(c.x0 + 1) + (c.x1 - c.x0 - 2) * t, 0.25, (c.z0 + c.z1) / 2];
+    }
+    // 2-column grid inside each room
+    const cols = 2;
+    const spacingX = (room.x1 - room.x0 - 1.8) / (cols - 1);
+    const col = idxInRoom % cols;
+    const row = Math.floor(idxInRoom / cols);
+    const x = room.x0 + 0.9 + col * spacingX;
+    const z = room.z0 + 1.2 + row * 1.4;
+    return [x, 0.3, Math.min(z, room.z1 - 0.5)];
+  }
+
+  function drawOccupant(occ, roomOccupants) {
+    const idxInRoom = roomOccupants.indexOf(occ);
+    const [x, y, z] = getOccupantPosition(occ, idxInRoom);
+    const [sx, sy] = isoProject(x, y, z);
+
+    const isSafe = state.safe.indexOf(occ.id) !== -1;
+    let color;
+    if (state.breakGlass) {
+      color = isSafe ? '#059669' : '#dc2626';
+    } else {
+      color = '#0284c7';
+    }
+
+    // Halo
+    const rgb = color === '#0284c7' ? '2, 132, 199'
+              : color === '#dc2626' ? '220, 38, 38'
+              : '5, 150, 105';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${rgb}, 0.22)`;
+    ctx.fill();
+
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawScene() {
+    if (canvasW === 0 || canvasH === 0) {
+      requestAnimationFrame(drawScene);
+      return;
+    }
+
+    if (!isDragging && autoRotate && (Date.now() - lastInteraction > 2500)) {
+      angle += 0.0022;
+    }
+
+    ctx.clearRect(0, 0, canvasW, canvasH);
+
+    // Draw corridors first, then rooms, then occupants
+    drawCorridor();
+    ROOMS.forEach(drawRoom);
+
+    // Group occupants by room
+    const byRoom = {};
+    state.occupants.forEach(occ => {
+      if (!byRoom[occ.room]) byRoom[occ.room] = [];
+      byRoom[occ.room].push(occ);
+    });
+    Object.keys(byRoom).forEach(k => {
+      const list = byRoom[k];
+      list.forEach(occ => drawOccupant(occ, list));
+    });
+
+    requestAnimationFrame(drawScene);
+  }
+
+  function setupCanvasInteraction() {
+    const wrap = $('floorplanWrap');
+
+    wrap.addEventListener('mousedown', () => {
+      isDragging = true;
+      lastInteraction = Date.now();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      angle += (e.movementX || 0) * 0.007;
+      lastInteraction = Date.now();
+    });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    wrap.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        touchStartX = e.touches[0].clientX;
+        lastInteraction = Date.now();
+      }
+    }, { passive: true });
+    wrap.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const x = e.touches[0].clientX;
+      angle += (x - touchStartX) * 0.008;
+      touchStartX = x;
+      lastInteraction = Date.now();
+    }, { passive: true });
+    wrap.addEventListener('touchend', () => { isDragging = false; });
+    wrap.addEventListener('touchcancel', () => { isDragging = false; });
+  }
+
+  // ================================================================
+  // RENDER
+  // ================================================================
+  function render() {
+    // Occupancy
+    $('occupancyValue').textContent = state.occupants.length;
+    const safeCount = state.breakGlass
+      ? state.occupants.filter(o => state.safe.indexOf(o.id) !== -1).length
+      : 0;
+    const unaccounted = state.breakGlass
+      ? state.occupants.length - safeCount
+      : null;
+    $('unaccountedValue').textContent = unaccounted === null ? '\u2014' : unaccounted;
+
+    // Mode
+    setMode(state.breakGlass ? 'alarm' : 'normal');
+
+    // Session card
+    const mySession = getMySession();
+    const sessionSection = $('sessionSection');
+    if (mySession) {
+      sessionSection.style.display = 'block';
+      $('sessionAvatar').textContent = initials(mySession.name);
+      $('sessionName').textContent = mySession.name;
+      const room = roomForLabId(mySession.room);
+      const roomName = room ? room.name : mySession.room;
+      $('sessionMeta').textContent = mySession.room + ' \u00b7 ' + roomName;
+    } else {
+      sessionSection.style.display = 'none';
+    }
+
+    // Locked list
+    const lockedList = $('lockedList');
+    if (state.occupants.length === 0) {
+      lockedList.innerHTML = '<li class="empty">No occupants logged yet.</li>';
+    } else {
+      lockedList.innerHTML = state.occupants.slice(0, 10).map(o =>
+        `<li><span>Token ${o.id.slice(0,12)}&hellip;</span><span class="lock-label">Encrypted</span></li>`
+      ).join('') + (state.occupants.length > 10 ? `<li class="empty">+ ${state.occupants.length - 10} more&hellip;</li>` : '');
+    }
+
+    // Muster
     if (state.breakGlass) {
       $('musterSection').style.display = 'block';
       $('breakGlassBtn').disabled = true;
-      $('musterList').innerHTML = state.occupants.map(o => {
-        const safe = state.safe.has(o.id);
+      const sorted = [...state.occupants].sort((a, b) => {
+        const aS = state.safe.indexOf(a.id) !== -1 ? 1 : 0;
+        const bS = state.safe.indexOf(b.id) !== -1 ? 1 : 0;
+        return aS - bS;
+      });
+      $('musterList').innerHTML = sorted.map(o => {
+        const safe = state.safe.indexOf(o.id) !== -1;
         return `<div class="muster-row">
           <div>
-            <div class="muster-name">${o.name}</div>
-            <div class="muster-meta">${o.matric} &middot; ${o.medical}</div>
+            <div class="muster-name">${o.name}<span class="muster-room">${o.room}</span></div>
+            <div class="muster-meta">${o.matric} \u00b7 ${o.medical}</div>
           </div>
           <span class="badge ${safe ? 'badge-ok' : 'badge-danger'}">${safe ? 'Safe at DK7' : 'Unaccounted'}</span>
         </div>`;
       }).join('') || '<p class="body-text">No active tokens.</p>';
+    } else {
+      $('musterSection').style.display = 'none';
+      $('breakGlassBtn').disabled = false;
     }
 
+    // Receipt + safe section
+    $('studentReceipt').classList.toggle('show', state.breakGlass);
+    const showSafeSection = state.breakGlass && !!mySession;
+    $('studentSafeSection').style.display = showSafeSection ? 'block' : 'none';
+
+    const safeBtn = $('studentMarkSafeBtn');
+    if (mySession && state.safe.indexOf(mySession.id) !== -1) {
+      safeBtn.disabled = true;
+      safeBtn.textContent = 'Safe at DK7 \u2713';
+    } else {
+      safeBtn.disabled = false;
+      safeBtn.textContent = 'I am safe at DK7';
+    }
+
+    // Audit log
     $('auditLog').innerHTML = state.auditLog.length === 0
       ? '<div class="audit-entry empty">No events recorded.</div>'
-      : state.auditLog.map(e =>
+      : state.auditLog.slice(0, 30).map(e =>
         `<div class="audit-entry">
           <span class="time">${e.time}</span>
           <span class="action">${e.action}</span>
@@ -909,124 +2176,497 @@ dl.ledger dd {
         </div>`
       ).join('');
 
-    renderDots();
+    // Charts
+    renderRoomBars();
+    renderDonut();
+    renderSparkline();
   }
 
-  function renderAndBroadcast() {
-    render();
-    channel.postMessage({
-      occupants: state.occupants,
-      breakGlass: state.breakGlass,
-      safe: Array.from(state.safe),
-      auditLog: state.auditLog
+  function renderRoomBars() {
+    const counts = {};
+    ROOMS.forEach(r => counts[r.id] = 0);
+    state.occupants.forEach(o => {
+      if (counts[o.room] !== undefined) counts[o.room]++;
+    });
+    const max = Math.max(1, ...Object.values(counts));
+    document.querySelectorAll('.room-bar-row').forEach(row => {
+      const lab = row.dataset.room;
+      if (!lab || counts[lab] === undefined) return;
+      const bar = row.querySelector('.bar-fill');
+      const val = row.querySelector('.bar-value');
+      const pct = (counts[lab] / max) * 100;
+      bar.style.width = pct + '%';
+      val.textContent = counts[lab];
     });
   }
 
-  function addAudit(action) {
+  function renderDonut() {
+    const section = $('donutSection');
+    if (!state.breakGlass) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+
+    const total = state.occupants.length;
+    const safe = state.safe.length;
+    const missing = total - safe;
+    const pct = total > 0 ? safe / total : 0;
+    const circumference = 2 * Math.PI * 42;
+    const dash = pct * circumference;
+
+    $('donutArc').setAttribute('stroke-dasharray', dash + ' ' + circumference);
+    $('donutPercent').textContent = Math.round(pct * 100) + '%';
+    $('legendSafe').textContent = safe;
+    $('legendMissing').textContent = missing;
+  }
+
+  function renderSparkline() {
+    const path = $('sparklinePath');
+    const area = $('sparklineArea');
+    if (!state.timeline || state.timeline.length === 0) {
+      path.setAttribute('d', '');
+      area.setAttribute('d', '');
+      $('sparklineMax').textContent = '0';
+      return;
+    }
+    const values = state.timeline;
+    const max = Math.max(1, ...values);
+    const w = 300;
+    const h = 44;
+    const n = values.length;
+    const points = values.map((v, i) => {
+      const x = n === 1 ? w / 2 : (i / (n - 1)) * w;
+      const y = h - (v / max) * (h - 4) - 2;
+      return [x, y];
+    });
+    let d = 'M ' + points[0][0].toFixed(1) + ' ' + points[0][1].toFixed(1);
+    for (let i = 1; i < points.length; i++) {
+      d += ' L ' + points[i][0].toFixed(1) + ' ' + points[i][1].toFixed(1);
+    }
+    path.setAttribute('d', d);
+    let areaD = d + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+    if (n === 1) {
+      areaD = 'M 0 ' + points[0][1].toFixed(1)
+        + ' L ' + w + ' ' + points[0][1].toFixed(1)
+        + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+    }
+    area.setAttribute('d', areaD);
+    $('sparklineMax').textContent = String(max);
+  }
+
+  function renderAll() {
+    render();
+    broadcast();
+  }
+
+  // ================================================================
+  // ACTIONS
+  // ================================================================
+  function checkIn(labId, isMine) {
+    if (state.occupants.length >= MAX_OCCUPANTS) {
+      showToast('Maximum ' + MAX_OCCUPANTS + ' occupants reached', 'danger');
+      return null;
+    }
+    const base = ALL_STUDENTS[state.occupants.length];
+    if (!base) return null;
+
+    const occ = {
+      id: randomHex(16),
+      name: base.name,
+      matric: base.matric,
+      medical: base.medical,
+      room: labId || 'LAB-1',
+      safe: false
+    };
+    state.occupants.push(occ);
+    state.timeline.push(state.occupants.length);
+    if (isMine) {
+      state.mySessionId = occ.id;
+    }
+    addAudit('anonymous check-in \u00b7 ' + occ.room, false);
+    return occ;
+  }
+
+  function addAudit(action, shouldBroadcast) {
     state.auditLog.unshift({
       time: new Date().toLocaleTimeString('en-GB'),
-      action,
+      action: action,
       hash: randomHex(8).toUpperCase()
     });
-    renderAndBroadcast();
+    if (state.auditLog.length > 100) state.auditLog = state.auditLog.slice(0, 100);
+    if (shouldBroadcast !== false) {
+      renderAll();
+    } else {
+      render();
+    }
   }
 
-  function checkIn() {
-    if (state.occupants.length >= NAMES.length) return;
-    const p = NAMES[state.occupants.length];
-    const occ = { ...p, id: randomHex(16) };
-    state.occupants.push(occ);
-    addAudit('anonymous check-in \u00b7 blok L');
+  function logOut() {
+    const mySession = getMySession();
+    if (!mySession) return;
+    if (!confirm('Log out of ' + mySession.room + '? Your session will be removed from the security dashboard.')) {
+      return;
+    }
+
+    const room = mySession.room;
+    state.occupants = state.occupants.filter(o => o.id !== mySession.id);
+    state.safe = state.safe.filter(id => id !== mySession.id);
+    state.mySessionId = null;
+
+    addAudit('check-out \u00b7 ' + room, false);
+    renderAll();
+    showToast('Checked out \u00b7 ' + room, 'accent');
   }
 
   function breakGlass() {
     if (state.occupants.length === 0) {
-      alert('No occupants to muster. Check in a student first.');
+      showToast('No occupants to muster', 'danger');
       return;
     }
     state.breakGlass = true;
-    setMode('alarm');
     $('eventId').textContent = 'BG-' + randomHex(8).toUpperCase();
-    $('studentReceipt').classList.add('show');
     $('receiptTime').textContent = new Date().toLocaleTimeString('en-GB');
-    addAudit('break-glass decryption \u00b7 blok L \u00b7 dual-sig');
+    addAudit('break-glass decryption \u00b7 blok L \u00b7 dual-sig', false);
+    renderAll();
+    showToast('Break-Glass activated', 'danger');
   }
 
-  function markSafe() {
-    const first = state.occupants.find(o => !state.safe.has(o.id));
-    if (first) {
-      state.safe.add(first.id);
-      addAudit(`muster confirmation \u00b7 ${first.matric}`);
+  function markSafe(id) {
+    if (state.safe.indexOf(id) !== -1) return;
+    state.safe.push(id);
+    const occ = state.occupants.find(o => o.id === id);
+    if (occ) {
+      addAudit('muster confirmation \u00b7 ' + occ.matric, false);
+      renderAll();
+    }
+  }
+
+  function markFirstUnsafe() {
+    const first = state.occupants.find(o => state.safe.indexOf(o.id) === -1);
+    if (first) markSafe(first.id);
+  }
+
+  function markAllSafe() {
+    let count = 0;
+    state.occupants.forEach(o => {
+      if (state.safe.indexOf(o.id) === -1) {
+        state.safe.push(o.id);
+        count++;
+      }
+    });
+    if (count > 0) {
+      addAudit('bulk muster \u00b7 ' + count + ' students safe', false);
+      renderAll();
+      showToast(count + ' marked safe', 'safe');
     }
   }
 
   function reset() {
-    state.occupants = [];
-    state.breakGlass = false;
-    state.safe = new Set();
-    state.auditLog = [];
+    state = {
+      occupants: [],
+      breakGlass: false,
+      safe: [],
+      auditLog: [],
+      timeline: [],
+      mySessionId: null
+    };
+    $('eventId').textContent = '\u2014';
+    $('receiptTime').textContent = '\u2014';
     setMode('normal');
-    $('breakGlassBtn').disabled = false;
-    $('musterSection').style.display = 'none';
-    $('studentReceipt').classList.remove('show');
-    renderAndBroadcast();
+    renderAll();
+    showToast('Reset');
   }
 
+  function simulateN(n) {
+    const labs = ['LAB-1', 'LAB-2', 'LAB-3', 'LAB-4', 'LH-1', 'LH-2', 'LH-3', 'LH-4'];
+    let added = 0;
+    for (let i = 0; i < n; i++) {
+      if (state.occupants.length >= MAX_OCCUPANTS) break;
+      const lab = labs[Math.floor(Math.random() * labs.length)];
+      const occ = checkIn(lab, false);
+      if (occ) added++;
+    }
+    if (added > 0) {
+      renderAll();
+      showToast('+' + added + ' students', 'accent');
+    } else {
+      showToast('Roster full', 'danger');
+    }
+  }
+
+  // ================================================================
+  // AUTO DEMO
+  // ================================================================
   let demoTimeouts = [];
   let demoRunning = false;
+  function clearDemo() {
+    demoTimeouts.forEach(t => clearTimeout(t));
+    demoTimeouts = [];
+  }
   function schedule(fn, ms) {
     demoTimeouts.push(setTimeout(fn, ms));
   }
   function autoDemo() {
     if (demoRunning) return;
     demoRunning = true;
+    clearDemo();
     reset();
-    schedule(() => checkIn(), 800);
-    schedule(() => checkIn(), 2000);
-    schedule(() => checkIn(), 3200);
-    schedule(() => breakGlass(), 6000);
-    schedule(() => markSafe(), 9500);
-    schedule(() => markSafe(), 12000);
-    schedule(() => { demoRunning = false; demoTimeouts = []; }, 14000);
+
+    // First student logs in as "mine" so the student wallet has a session
+    schedule(() => {
+      const occ = checkIn('LAB-1', true);
+      renderAll();
+    }, 600);
+    schedule(() => { checkIn('LAB-2', false); renderAll(); }, 1400);
+    schedule(() => { checkIn('LAB-3', false); renderAll(); }, 2200);
+    schedule(() => { checkIn('LH-1', false); renderAll(); }, 3000);
+    schedule(() => { checkIn('LH-2', false); renderAll(); }, 3800);
+    schedule(() => breakGlass(), 5800);
+    schedule(() => {
+      const mySession = getMySession();
+      if (mySession) markSafe(mySession.id);
+    }, 8200);
+    schedule(() => markFirstUnsafe(), 9600);
+    schedule(() => markFirstUnsafe(), 11000);
+    schedule(() => { demoRunning = false; }, 13000);
+    showToast('Auto Demo started', 'accent');
   }
 
-  $('checkInBtn').onclick = checkIn;
-  $('breakGlassBtn').onclick = breakGlass;
-  $('autoDemoBtn').onclick = autoDemo;
-  $('resetBtn').onclick = reset;
+  // ================================================================
+  // QR SCANNER
+  // ================================================================
+  let scannerStream = null;
+  let scanning = false;
 
-  const markSafeBtn = document.createElement('button');
-  markSafeBtn.className = 'btn-safe';
-  markSafeBtn.textContent = 'I am safe at DK7';
-  markSafeBtn.style.cssText = 'display:none;';
-  markSafeBtn.id = 'studentMarkSafe';
-  markSafeBtn.onclick = markSafe;
-  document.querySelector('.student-panel').appendChild(markSafeBtn);
+  async function startScanner() {
+    $('scannerModal').classList.add('show');
 
-  channel.onmessage = (event) => {
-    const d = event.data;
-    state.occupants = d.occupants;
-    state.breakGlass = d.breakGlass;
-    state.safe = new Set(d.safe);
-    state.auditLog = d.auditLog;
-    $('breakGlassBtn').disabled = state.breakGlass;
-    $('musterSection').style.display = state.breakGlass ? 'block' : 'none';
-    $('studentReceipt').classList.toggle('show', state.breakGlass);
-    setMode(state.breakGlass ? 'alarm' : 'normal');
-    render();
-  };
+    if (typeof jsQR === 'undefined') {
+      showToast('QR library unavailable \u00b7 use manual entry', 'danger');
+      setTimeout(() => {
+        $('scannerModal').classList.remove('show');
+        $('manualModal').classList.add('show');
+        $('manualInput').focus();
+      }, 1200);
+      return;
+    }
 
-  setInterval(() => {
+    try {
+      scannerStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      const video = $('qrVideo');
+      video.srcObject = scannerStream;
+      await video.play();
+      scanning = true;
+      scanLoop();
+    } catch (err) {
+      showToast('Camera unavailable \u00b7 use manual entry', 'danger');
+      setTimeout(() => {
+        $('scannerModal').classList.remove('show');
+        $('manualModal').classList.add('show');
+        $('manualInput').focus();
+      }, 900);
+    }
+  }
+
+  function scanLoop() {
+    if (!scanning) return;
+    const video = $('qrVideo');
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      requestAnimationFrame(scanLoop);
+      return;
+    }
+    const tmp = document.createElement('canvas');
+    tmp.width = video.videoWidth;
+    tmp.height = video.videoHeight;
+    const tmpCtx = tmp.getContext('2d');
+    tmpCtx.drawImage(video, 0, 0);
+
+    try {
+      const imageData = tmpCtx.getImageData(0, 0, tmp.width, tmp.height);
+      const code = jsQR(imageData.data, tmp.width, tmp.height);
+      if (code && code.data) {
+        const labId = parseQrCode(code.data);
+        if (labId) {
+          stopScanner();
+          handleQrResult(labId);
+          return;
+        }
+      }
+    } catch (e) {}
+    requestAnimationFrame(scanLoop);
+  }
+
+  function stopScanner() {
+    scanning = false;
+    if (scannerStream) {
+      scannerStream.getTracks().forEach(t => t.stop());
+      scannerStream = null;
+    }
+    $('scannerModal').classList.remove('show');
+    const video = $('qrVideo');
+    video.srcObject = null;
+  }
+
+  function handleQrResult(labId) {
+    const existing = getMySession();
+    if (existing) {
+      // Re-scan: update room
+      existing.room = labId;
+      existing.safe = false;
+      state.safe = state.safe.filter(id => id !== existing.id);
+      addAudit('re-scan \u00b7 ' + labId, false);
+      renderAll();
+      showToast('Re-scanned at ' + labId, 'accent');
+      return;
+    }
+
+    const occ = checkIn(labId, true);
+    if (occ) {
+      const room = roomForLabId(labId);
+      const roomName = room ? room.name : labId;
+      renderAll();
+      showToast('Registered at ' + labId + ' \u00b7 ' + roomName, 'accent');
+      if (window.innerWidth <= 900) {
+        const tab = document.querySelector('.mobile-tabs button[data-view="student"]');
+        if (tab) tab.click();
+      }
+    }
+  }
+
+  // ================================================================
+  // EVENT HANDLERS
+  // ================================================================
+  function setupHandlers() {
+    $('autoDemoBtn').addEventListener('click', autoDemo);
+    $('resetBtn').addEventListener('click', reset);
+
+    document.querySelectorAll('.mobile-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        document.querySelectorAll('.mobile-tabs button').forEach(b => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('.panel').forEach(p => {
+          p.classList.toggle('active', p.dataset.panel === view);
+        });
+        if (view === 'security') {
+          setTimeout(resizeCanvas, 60);
+        }
+      });
+    });
+
+    $('scanQrBtn').addEventListener('click', startScanner);
+    $('manualEntryBtn').addEventListener('click', () => {
+      $('manualModal').classList.add('show');
+      $('manualInput').focus();
+    });
+    $('showQrRefBtn').addEventListener('click', () => {
+      $('qrRefModal').classList.add('show');
+    });
+    $('closeQrRefBtn').addEventListener('click', () => {
+      $('qrRefModal').classList.remove('show');
+    });
+
+    $('logoutBtn').addEventListener('click', logOut);
+
+    $('studentMarkSafeBtn').addEventListener('click', () => {
+      const mySession = getMySession();
+      if (mySession) markSafe(mySession.id);
+    });
+
+    $('breakGlassBtn').addEventListener('click', breakGlass);
+    $('simulate5Btn').addEventListener('click', () => simulateN(5));
+    $('simulate10Btn').addEventListener('click', () => simulateN(10));
+    $('markAllSafeBtn').addEventListener('click', markAllSafe);
+
+    $('cancelScanBtn').addEventListener('click', stopScanner);
+    $('scanManualBtn').addEventListener('click', () => {
+      stopScanner();
+      $('manualModal').classList.add('show');
+      $('manualInput').focus();
+    });
+
+    $('cancelManualBtn').addEventListener('click', () => {
+      $('manualModal').classList.remove('show');
+    });
+    $('submitManualBtn').addEventListener('click', () => {
+      const input = $('manualInput').value;
+      const labId = parseQrCode(input);
+      if (labId) {
+        $('manualModal').classList.remove('show');
+        $('manualInput').value = '';
+        handleQrResult(labId);
+      } else {
+        showToast('Invalid code \u00b7 try REFRACT:LAB-1', 'danger');
+      }
+    });
+    $('manualInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('submitManualBtn').click();
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+          if (modal.id === 'scannerModal') stopScanner();
+        }
+      });
+    });
+
+    channel.onmessage = (event) => {
+      if (event.data && event.data.type === 'state') {
+        state = event.data.state;
+        render();
+      }
+    };
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          state = {
+            occupants: parsed.occupants || [],
+            breakGlass: parsed.breakGlass || false,
+            safe: parsed.safe || [],
+            auditLog: parsed.auditLog || [],
+            timeline: parsed.timeline || [],
+            mySessionId: parsed.mySessionId || null
+          };
+          render();
+        } catch (err) {}
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+    });
+
+    setInterval(() => {
+      $('tokenCode').textContent = shortToken();
+    }, 30000);
+  }
+
+  // ================================================================
+  // INIT
+  // ================================================================
+  function init() {
+    loadState();
     $('tokenCode').textContent = shortToken();
-  }, 30000);
+    resizeCanvas();
+    setupCanvasInteraction();
+    setupHandlers();
+    render();
+    drawScene();
+  }
 
-  setInterval(() => {
-    const btn = document.getElementById('studentMarkSafe');
-    if (btn) btn.style.display = state.breakGlass ? 'block' : 'none';
-  }, 500);
-
-  render();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
+
 </body>
 </html>
