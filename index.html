@@ -31,6 +31,8 @@
   --safe-soft: rgba(5, 150, 105, 0.08);
   --amber: #d97706;
   --amber-soft: rgba(217, 119, 6, 0.08);
+  --yellow: #ca8a04;
+  --yellow-soft: rgba(202, 138, 4, 0.12);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -128,14 +130,14 @@ body.alarm {
 }
 .mode-chip .dot {
   width: 6px; height: 6px;
-  background: var(--accent);
+  background: var(--safe);
   border-radius: 50%;
-  box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4);
+  box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4);
   animation: chipPulse 2.4s ease-in-out infinite;
 }
 @keyframes chipPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4); }
-  50% { box-shadow: 0 0 0 5px rgba(2, 132, 199, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(5, 150, 105, 0); }
 }
 body.alarm .mode-chip {
   color: var(--danger);
@@ -171,10 +173,14 @@ button {
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
   position: relative;
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--ink);
   color: white;
   border-color: var(--ink);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn-text {
@@ -282,7 +288,7 @@ body.alarm .panel::after {
   margin-top: 4px;
 }
 
-/* ============ ROLE BADGES (NEW) ============ */
+/* ============ ROLE BADGES ============ */
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -378,13 +384,44 @@ body.alarm .panel::after {
   letter-spacing: 0.06em;
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
 }
-.badge-ok {
-  background: var(--safe-soft);
-  color: var(--safe);
+.badge-ok { background: var(--safe-soft); color: var(--safe); }
+.badge-danger { background: var(--danger-soft); color: var(--danger); }
+.badge-yellow { background: var(--yellow-soft); color: var(--yellow); }
+.badge-accent { background: var(--accent-soft); color: var(--accent); }
+
+/* ============ PUSH NOTIFICATION BANNER ============ */
+.push-banner {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--amber-soft);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  border-left: 3px solid var(--amber);
+  display: none;
+  animation: slideDown 0.35s ease;
 }
-.badge-danger {
+.push-banner.show { display: block; }
+.push-banner.danger {
   background: var(--danger-soft);
-  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.45);
+  border-left-color: var(--danger);
+}
+.push-banner-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.push-banner.danger .push-banner-title { color: var(--danger); }
+.push-banner-body {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  line-height: 1.45;
 }
 
 /* ============ TOKEN BOX ============ */
@@ -438,42 +475,39 @@ body.alarm .panel::after {
   position: relative;
   overflow: hidden;
 }
-.btn-primary {
-  background: var(--ink);
-  margin-top: 14px;
-}
-.btn-primary:hover {
-  background: var(--accent);
-}
+.btn-primary { background: var(--ink); margin-top: 14px; }
+.btn-primary:hover { background: var(--accent); }
 .btn-primary::after, .btn-danger::after, .btn-safe::after {
   content: '';
   position: absolute;
   top: 0; left: -100%;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
   transition: left 0.4s ease;
 }
-.btn-primary:hover::after, .btn-danger:hover::after, .btn-safe:hover::after {
-  left: 100%;
-}
-.btn-danger {
-  background: var(--danger);
-}
-.btn-danger:hover { background: #b91c1c; }
-.btn-danger:disabled {
-  background: var(--muted-2);
-  cursor: not-allowed;
-}
-.btn-safe {
-  background: var(--safe);
+.btn-primary:hover::after, .btn-danger:hover::after, .btn-safe:hover::after { left: 100%; }
+.btn-danger { background: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-danger:disabled { background: var(--muted-2); cursor: not-allowed; }
+.btn-safe { background: var(--safe); margin-top: 10px; }
+.btn-safe:hover:not(:disabled) { background: #047857; }
+.btn-safe:disabled { background: var(--muted-2); cursor: not-allowed; }
+
+.btn-warning {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  color: white;
+  background: var(--amber);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   margin-top: 10px;
 }
-.btn-safe:hover { background: #047857; }
-.btn-safe:disabled {
-  background: var(--muted-2);
-  cursor: not-allowed;
-}
+.btn-warning:hover { background: #b45309; }
 
 /* ============ LEDGER ============ */
 dl.ledger {
@@ -501,10 +535,7 @@ dl.ledger dd {
   color: var(--ink-2);
   display: none;
 }
-.receipt.show {
-  display: block;
-  animation: slideDown 0.4s ease;
-}
+.receipt.show { display: block; animation: slideDown 0.4s ease; }
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -541,13 +572,8 @@ dl.ledger dd {
   background: var(--accent);
   transition: width 0.3s ease;
 }
-.metric:hover {
-  border-color: var(--accent-line);
-  background: linear-gradient(160deg, rgba(255,255,255,0.9), rgba(255,255,255,0.55));
-}
-.metric:hover::before {
-  width: 60%;
-}
+.metric:hover { border-color: var(--accent-line); background: linear-gradient(160deg, rgba(255,255,255,0.9), rgba(255,255,255,0.55)); }
+.metric:hover::before { width: 60%; }
 .metric.danger::before { background: var(--danger); }
 .metric.danger:hover { border-color: rgba(220, 38, 38, 0.4); }
 
@@ -576,7 +602,7 @@ dl.ledger dd {
   margin-top: 10px;
 }
 
-/* ============ FLOOR PLAN (3D CANVAS) ============ */
+/* ============ FLOOR PLAN ============ */
 .floorplan {
   border: 1px solid var(--hairline-strong);
   background: linear-gradient(160deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
@@ -602,15 +628,13 @@ dl.ledger dd {
 }
 .floorplan canvas {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   position: relative;
   z-index: 1;
 }
 .floorplan .hint {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  bottom: 8px; left: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6rem;
   color: var(--muted);
@@ -623,8 +647,7 @@ dl.ledger dd {
 }
 .floorplan .legend {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 8px; right: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -639,17 +662,10 @@ dl.ledger dd {
   z-index: 2;
 }
 .floorplan .legend div { display: flex; align-items: center; gap: 6px; }
-.floorplan .legend .swatch {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  display: inline-block;
-}
+.floorplan .legend .swatch { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 
 /* ============ LOCKED LIST ============ */
-.locked-list {
-  list-style: none;
-  border-top: 1px solid var(--hairline);
-}
+.locked-list { list-style: none; border-top: 1px solid var(--hairline); }
 .locked-list li {
   display: flex;
   justify-content: space-between;
@@ -671,16 +687,72 @@ dl.ledger dd {
   padding: 12px 4px;
   border-bottom: none;
 }
-.lock-label {
+
+/* ============ ALERTS LIST ============ */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.alert-card {
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--amber);
+  animation: slideIn 0.35s ease;
+}
+.alert-card.alert-danger {
+  border-left-color: var(--danger);
+  background: var(--danger-soft);
+}
+.alert-card.alert-warning {
+  border-left-color: var(--yellow);
+  background: var(--yellow-soft);
+}
+.alert-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.alert-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.alert-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.sig-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.sig-pill {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.62rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  padding: 2px 6px;
+  padding: 3px 8px;
   border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
 }
+.sig-pill.signed {
+  background: var(--safe-soft);
+  border-color: var(--safe);
+  color: var(--safe);
+  font-weight: 600;
+}
+.alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.alert-actions .btn { padding: 6px 12px; font-size: 0.72rem; }
 
 /* ============ MUSTER ============ */
 .muster-row {
@@ -766,12 +838,8 @@ dl.ledger dd {
 .audit-entry.empty::before { content: none; }
 .audit-entry.empty:hover { background: transparent; }
 
-/* ============ FLOOR PLAN DOTS ============ */
-.occupant-dot { transition: fill 0.3s ease, r 0.3s ease; }
-
 /* ============ SCROLLBAR ============ */
 ::selection { background: var(--accent-soft); color: var(--ink); }
-
 
 /* ================================================================
    MOBILE TABS
@@ -803,7 +871,6 @@ dl.ledger dd {
   color: white;
 }
 
-
 /* ================================================================
    CURRENT SESSION CARD
    ================================================================ */
@@ -812,8 +879,8 @@ dl.ledger dd {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
+  background: var(--safe-soft);
+  border: 1px solid rgba(5, 150, 105, 0.45);
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 .current-session.show { display: flex; }
@@ -847,11 +914,10 @@ dl.ledger dd {
 }
 
 /* ================================================================
-   LOGOUT BUTTON (NEW)
+   LOGOUT BUTTON
    ================================================================ */
 .session-logout {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   background: transparent;
   border: 1px solid var(--hairline-strong);
   color: var(--muted);
@@ -867,11 +933,7 @@ dl.ledger dd {
   border-color: var(--danger);
   color: var(--danger);
 }
-.session-logout svg {
-  width: 14px;
-  height: 14px;
-}
-
+.session-logout svg { width: 14px; height: 14px; }
 
 /* ================================================================
    CHECK-IN BUTTONS
@@ -918,17 +980,10 @@ dl.ledger dd {
   border-bottom-color: var(--accent);
 }
 
-
 /* ================================================================
    CHARTS
    ================================================================ */
-
-/* Per-room bars */
-.room-bars {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 24px;
-}
+.room-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
 .room-bar-row {
   display: grid;
   grid-template-columns: 44px 1fr 26px;
@@ -937,10 +992,7 @@ dl.ledger dd {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.66rem;
 }
-.room-bar-row .bar-label {
-  color: var(--muted);
-  letter-spacing: 0.06em;
-}
+.room-bar-row .bar-label { color: var(--muted); letter-spacing: 0.06em; }
 .room-bar-row .bar-track {
   height: 10px;
   background: rgba(15, 23, 42, 0.05);
@@ -952,14 +1004,8 @@ dl.ledger dd {
   position: absolute;
   top: 0; left: 0;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), #0369a1);
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.room-bar-row[data-type="lecture"] .bar-fill {
-  background: linear-gradient(90deg, #6366f1, #4338ca);
-}
-body.alarm .room-bar-row .bar-fill {
-  background: linear-gradient(90deg, var(--danger), #b91c1c);
+  background: linear-gradient(90deg, var(--safe), #047857);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
 }
 .room-bar-row .bar-value {
   font-family: 'JetBrains Mono', monospace;
@@ -976,11 +1022,7 @@ body.alarm .room-bar-row .bar-fill {
   gap: 20px;
 }
 .donut-wrap.show { display: grid; }
-.donut {
-  width: 120px;
-  height: 120px;
-  position: relative;
-}
+.donut { width: 120px; height: 120px; position: relative; }
 .donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .donut .donut-center {
   position: absolute;
@@ -1005,29 +1047,10 @@ body.alarm .room-bar-row .bar-fill {
   margin-top: 4px;
   letter-spacing: 0.06em;
 }
-.donut-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-}
-.donut-legend .row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ink-2);
-}
-.donut-legend .swatch {
-  width: 8px;
-  height: 8px;
-  display: inline-block;
-}
-.donut-legend .count {
-  margin-left: auto;
-  color: var(--ink);
-  font-weight: 500;
-}
+.donut-legend { display: flex; flex-direction: column; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; }
+.donut-legend .row { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.donut-legend .swatch { width: 8px; height: 8px; display: inline-block; }
+.donut-legend .count { margin-left: auto; color: var(--ink); font-weight: 500; }
 
 /* Activity sparkline */
 .sparkline-wrap {
@@ -1037,12 +1060,7 @@ body.alarm .room-bar-row .bar-fill {
   background: rgba(15, 23, 42, 0.02);
   padding: 8px 8px 20px 8px;
 }
-.sparkline-wrap svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
+.sparkline-wrap svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .sparkline-wrap .axis-label {
   position: absolute;
   bottom: 4px;
@@ -1054,22 +1072,11 @@ body.alarm .room-bar-row .bar-fill {
 .sparkline-wrap .axis-label.left { left: 8px; }
 .sparkline-wrap .axis-label.right { right: 8px; }
 
-
 /* ================================================================
    DEMO CONTROLS
    ================================================================ */
-.demo-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.demo-controls .btn {
-  flex: 1;
-  min-width: 90px;
-  text-align: center;
-  justify-content: center;
-}
-
+.demo-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-controls .btn { flex: 1; min-width: 90px; text-align: center; justify-content: center; }
 
 /* ================================================================
    MODALS
@@ -1086,14 +1093,8 @@ body.alarm .room-bar-row .bar-fill {
   justify-content: center;
   padding: 16px;
 }
-.modal-backdrop.show {
-  display: flex;
-  animation: fadeInModal 0.25s ease;
-}
-@keyframes fadeInModal {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.modal-backdrop.show { display: flex; animation: fadeInModal 0.25s ease; }
+@keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
 .modal-content {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(24px) saturate(170%);
@@ -1121,16 +1122,8 @@ body.alarm .room-bar-row .bar-fill {
   margin-bottom: 16px;
   letter-spacing: 0.02em;
 }
-.modal-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-.modal-actions .btn,
-.modal-actions .btn-scan {
-  flex: 1;
-}
-
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.modal-actions .btn, .modal-actions .btn-scan { flex: 1; }
 
 /* ================================================================
    SCANNER VIDEO
@@ -1143,16 +1136,10 @@ body.alarm .room-bar-row .bar-fill {
   overflow: hidden;
   border: 1px solid var(--hairline-strong);
 }
-#qrVideo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+#qrVideo { width: 100%; height: 100%; object-fit: cover; display: block; }
 .scan-frame {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 62%;
   aspect-ratio: 1;
@@ -1161,24 +1148,15 @@ body.alarm .room-bar-row .bar-fill {
   box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
   pointer-events: none;
 }
-.scan-frame::before,
-.scan-frame::after {
+.scan-frame::before, .scan-frame::after {
   content: '';
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 24px; height: 24px;
   border-color: white;
   border-style: solid;
 }
-.scan-frame::before {
-  top: -2px; left: -2px;
-  border-width: 3px 0 0 3px;
-}
-.scan-frame::after {
-  bottom: -2px; right: -2px;
-  border-width: 0 3px 3px 0;
-}
-
+.scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; }
+.scan-frame::after { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; }
 
 /* ================================================================
    MANUAL INPUT
@@ -1196,11 +1174,7 @@ body.alarm .room-bar-row .bar-fill {
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   transition: 0.2s;
 }
-.manual-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
+.manual-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 /* ================================================================
    QR REFERENCE
@@ -1226,10 +1200,7 @@ body.alarm .room-bar-row .bar-fill {
   margin-bottom: 4px;
 }
 .qr-group-header:first-child { padding-top: 0; }
-.qr-item {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hairline);
-}
+.qr-item { padding: 8px 0; border-bottom: 1px solid var(--hairline); }
 .qr-item:last-child { border-bottom: none; }
 .qr-location {
   color: var(--ink);
@@ -1247,14 +1218,12 @@ body.alarm .room-bar-row .bar-fill {
   letter-spacing: 0.04em;
 }
 
-
 /* ================================================================
    TOAST
    ================================================================ */
 .toast {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
+  bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(100px);
   background: var(--ink);
   color: white;
@@ -1274,7 +1243,7 @@ body.alarm .room-bar-row .bar-fill {
 .toast.toast-danger { background: var(--danger); }
 .toast.toast-safe { background: var(--safe); }
 .toast.toast-accent { background: var(--accent); }
-
+.toast.toast-amber { background: var(--amber); }
 
 /* ================================================================
    RESPONSIVE
@@ -1335,10 +1304,11 @@ body.alarm .room-bar-row .bar-fill {
 
 <div class="mobile-tabs" id="mobileTabs">
   <button data-view="student" class="active">Student</button>
-  <button data-view="security">Admin</button>
+  <button data-view="security">Admin &amp; Responders</button>
 </div>
 
 <main>
+  <!-- STUDENT PANEL -->
   <section class="panel student-panel active" data-panel="student">
     <div class="panel-header">
       <div>
@@ -1382,12 +1352,27 @@ body.alarm .room-bar-row .bar-fill {
     </div>
 
     <div class="section">
-      <div class="section-label">Access Token</div>
+      <div class="section-label">Access Token &amp; Safety Check</div>
+      
+      <!-- Push Notification Banner -->
+      <div class="push-banner" id="studentPushBanner">
+        <div class="push-banner-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span id="pushBannerTitleText">Push Notification · 1h Check-in</span>
+        </div>
+        <div class="push-banner-body" id="pushBannerBodyText">
+          You have been checked into this location for over 1 hour without checking out. Please verify on the website that you are still safe and present.
+        </div>
+      </div>
+
       <div class="token-box">
         <div class="token-code" id="tokenCode">8f9a-c2e1-77b0-4d3a</div>
         <div class="token-sub">rotates 30s · zk-SNARK proof</div>
       </div>
-      <button class="btn-scan" id="scanQrBtn">
+      <button class="btn-scan" id="scanQrBtn" style="margin-top: 12px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
@@ -1400,6 +1385,8 @@ body.alarm .room-bar-row .bar-fill {
         <button class="btn-link" id="manualEntryBtn">Enter code manually</button>
         <button class="btn-link" id="showQrRefBtn">View QR reference</button>
       </div>
+      <button class="btn-warning" id="verifyPresenceBtn" style="display:none;">Verify I Am Still Here (Turn Building Green)</button>
+      <button class="btn-danger" id="reportEmergencyBtn" style="margin-top:10px;">Report Emergency (Alert Admin &amp; Responders)</button>
     </div>
 
     <div class="section">
@@ -1412,27 +1399,28 @@ body.alarm .room-bar-row .bar-fill {
       </dl>
       <div class="receipt" id="studentReceipt">
         <strong>Break-Glass Audit Receipt</strong>
-        Your identity was accessed at <span id="receiptTime">&mdash;</span> by the Chief Security Officer due to a Blok L fire alarm. This access was authorized by a dual-signature event and logged immutably.
+        Your identity was accessed at <span id="receiptTime">&mdash;</span> after Campus Administrators and Emergency Responders jointly escalated an Alert to Emergency Level. This dual-signature Break-Glass event is logged immutably.
       </div>
     </div>
 
     <div class="section" id="studentSafeSection" style="display:none;">
       <div class="section-label" style="color: var(--safe);">Emergency Muster</div>
-      <p class="body-text" style="margin-bottom: 12px;">Fire alarm active. Proceed to DK7 and confirm your safety.</p>
+      <p class="body-text" style="margin-bottom: 12px;">Emergency Break-Glass active. Proceed to DK7 and confirm your safety.</p>
       <button class="btn-safe" id="studentMarkSafeBtn">I am safe at DK7</button>
     </div>
   </section>
 
+  <!-- ADMIN & EMERGENCY RESPONDER PANEL -->
   <section class="panel security-panel" data-panel="security">
     <div class="panel-header">
       <div>
         <h1>Command Dashboard</h1>
-        <p>faculty of engineering · blok L</p>
+        <p>administrators &amp; emergency responders · blok L</p>
         <span class="role-badge role-admin">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
-          Administrator
+          Admin &amp; Emergency Services
         </span>
       </div>
       <div class="idx">/02</div>
@@ -1449,21 +1437,65 @@ body.alarm .room-bar-row .bar-fill {
         <div class="metric danger">
           <div class="metric-label">Unaccounted</div>
           <div class="metric-value" id="unaccountedValue">&mdash;</div>
-          <div class="metric-sub">post-alarm manifest</div>
+          <div class="metric-sub">post-break-glass manifest</div>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-label">Live Floor Plan</div>
+      <div class="section-label">Live Floor Plan (Initial: All Green)</div>
       <div class="floorplan" id="floorplanWrap">
         <canvas id="floorCanvas"></canvas>
         <div class="legend">
-          <div><span class="swatch" style="background: var(--accent);"></span>Occupant</div>
-          <div><span class="swatch" style="background: var(--danger);"></span>Unaccounted</div>
-          <div><span class="swatch" style="background: var(--safe);"></span>Safe at DK7</div>
+          <div><span class="swatch" style="background: var(--safe);"></span>Green (Normal / Verified)</div>
+          <div><span class="swatch" style="background: var(--yellow);"></span>Yellow (1.5h Unverified)</div>
+          <div><span class="swatch" style="background: var(--danger);"></span>Red (Alert Level / 2h+)</div>
         </div>
         <div class="hint">Drag to rotate · auto-rotates when idle</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Alert Level &amp; Dual-Authority Escalation</div>
+      <p class="body-text" style="margin-bottom: 12px;">
+        Manual student reports and 2-hour unverified check-ins trigger an <strong>Alert Level</strong> (not an Emergency yet). Break-Glass identity decryption only occurs when <strong>both Administrators and Emergency Responders</strong> decide to escalate to Emergency Level.
+      </p>
+      <div id="alertsList" class="alerts-list">
+        <div class="body-text" style="color:var(--muted);font-style:italic;">No active alerts. All buildings green.</div>
+      </div>
+    </div>
+
+    <div class="section" id="musterSection" style="display:none;">
+      <div class="section-label" style="color: var(--danger);">Break-Glass De-Anonymized Manifest</div>
+      <p class="body-text" style="margin-bottom: 10px;">Dual-signature escalation complete. Occupant identities unlocked for emergency response:</p>
+      <div id="musterList"></div>
+    </div>
+
+    <div class="section" id="donutSection" style="display:none;">
+      <div class="section-label">Muster Progress</div>
+      <div class="donut-wrap show" id="donutWrap">
+        <div class="donut">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(15, 23, 42, 0.06)" stroke-width="14"/>
+            <circle id="donutArc" cx="50" cy="50" r="42" fill="none" stroke="var(--safe)" stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 264"/>
+          </svg>
+          <div class="donut-center">
+            <div class="big" id="donutPercent">0%</div>
+            <div class="small">SAFE</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="row">
+            <span class="swatch" style="background: var(--safe);"></span>
+            <span>Safe at DK7</span>
+            <span class="count" id="legendSafe">0</span>
+          </div>
+          <div class="row">
+            <span class="swatch" style="background: var(--danger);"></span>
+            <span>Unaccounted</span>
+            <span class="count" id="legendMissing">0</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1513,66 +1545,26 @@ body.alarm .room-bar-row .bar-fill {
       </div>
     </div>
 
-    <div class="section" id="donutSection" style="display:none;">
-      <div class="section-label">Muster Progress</div>
-      <div class="donut-wrap show" id="donutWrap">
-        <div class="donut">
-          <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(15, 23, 42, 0.06)" stroke-width="14"/>
-            <circle id="donutArc" cx="50" cy="50" r="42" fill="none" stroke="var(--safe)" stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 264"/>
-          </svg>
-          <div class="donut-center">
-            <div class="big" id="donutPercent">0%</div>
-            <div class="small">SAFE</div>
-          </div>
-        </div>
-        <div class="donut-legend">
-          <div class="row">
-            <span class="swatch" style="background: var(--safe);"></span>
-            <span>Safe at DK7</span>
-            <span class="count" id="legendSafe">0</span>
-          </div>
-          <div class="row">
-            <span class="swatch" style="background: var(--danger);"></span>
-            <span>Unaccounted</span>
-            <span class="count" id="legendMissing">0</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="section">
-      <div class="section-label">Active Tokens</div>
+      <div class="section-label">Active Anonymous Tokens</div>
       <ul class="locked-list" id="lockedList">
         <li class="empty">No occupants logged yet.</li>
       </ul>
-      <p class="footnote">Identity decryption requires a multi-signature Break-Glass event authorized by Campus Security and the Emergency Commander.</p>
+      <p class="footnote">Identity decryption requires a joint escalation to Emergency Level authorized by Campus Administrators and Emergency Responders.</p>
     </div>
 
     <div class="section">
-      <div class="section-label">Emergency Break-Glass</div>
-      <p class="body-text" style="margin-bottom: 14px;">Simulate a fire alarm in Blok L. Active tokens will decrypt for this zone only, generating an auditable muster manifest.</p>
-      <button class="btn-danger" id="breakGlassBtn">Simulate Blok L Fire Alarm</button>
-      <div id="musterSection" style="display:none; margin-top: 18px;">
-        <div class="section-label" style="color: var(--danger);">Live Muster Manifest</div>
-        <div id="musterList"></div>
-        <div class="receipt show" style="margin-top: 14px;">
-          <strong>Break-Glass Audit Event</strong>
-          Event ID: <span id="eventId" style="font-family: 'JetBrains Mono', monospace;">&mdash;</span><br>
-          Authorized by Campus Security + Emergency Commander.<br>
-          Scope: Blok L only · notifications dispatched automatically.
-        </div>
+      <div class="section-label">Simulation &amp; Demo Controls</div>
+      <div class="demo-controls" style="margin-bottom: 8px;">
+        <button class="btn" id="advance30mBtn">+30 Mins</button>
+        <button class="btn" id="advance1hBtn">+1 Hour</button>
+        <button class="btn" id="simulate5Btn">+5 Occupants</button>
+        <button class="btn" id="markAllSafeBtn">All Safe (DK7)</button>
       </div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Demo Controls</div>
-      <div class="demo-controls">
-        <button class="btn" id="simulate5Btn">+5 Students</button>
-        <button class="btn" id="simulate10Btn">+10 Students</button>
-        <button class="btn" id="markAllSafeBtn">Mark All Safe</button>
-      </div>
-      <p class="footnote">Up to 20 occupants per demo · 8 rooms across Blok L. Use Auto Demo for a scripted walkthrough.</p>
+      <p class="footnote">
+        Simulated time elapsed: <span id="timeOffsetDisplay" style="color:var(--ink);font-weight:600;">0m</span>
+        · 1h = Push Notification · 1.5h = Yellow · 2h = Red Alert to Admin (with sporadic reminders if unaddressed).
+      </p>
     </div>
 
     <div class="section">
@@ -1622,6 +1614,18 @@ body.alarm .room-bar-row .bar-fill {
     <div class="modal-actions">
       <button class="btn" id="cancelManualBtn">Cancel</button>
       <button class="btn" id="submitManualBtn" style="background: var(--accent); color: white; border-color: var(--accent);">Register</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="logoutConfirmModal">
+  <div class="modal-content">
+    <h2>Check Out of Location</h2>
+    <div class="modal-sub" id="logoutModalSub">confirm room check-out</div>
+    <p class="body-text">Checking out removes your anonymous session token and resets the building safety timer for your session.</p>
+    <div class="modal-actions">
+      <button class="btn" id="cancelLogoutBtn">Cancel</button>
+      <button class="btn" id="confirmLogoutBtn" style="background: var(--danger); color: white; border-color: var(--danger);">Check Out</button>
     </div>
   </div>
 </div>
@@ -1687,11 +1691,14 @@ body.alarm .room-bar-row .bar-fill {
   // CONSTANTS
   // ================================================================
   const CHANNEL_NAME = 'refractid-demo';
-  const STORAGE_KEY = 'refractid-state-v4';
+  const STORAGE_KEY = 'refractid-state-v6';
   const MAX_OCCUPANTS = 20;
 
-  // Room definitions — Blok L campus layout
-  // Row 1 (z 0–4): Labs · Row 2 (z 6–10): Lecture Halls · Corridor between
+  // Timers (in ms)
+  const HOUR = 3600000;          // 1 hour -> Push Notification sent to student
+  const HALF_HOUR = 1800000;     // +30 mins (1.5h) -> Building turns Yellow; +30 mins more (2h) -> Red + Alert Level
+  const SPORADIC_REAL_MS = 12000; // Sporadic reminder interval when Admin leaves Red building unaddressed
+
   const ROOMS = [
     { id: 'LAB-1', name: 'High Voltage Lab', type: 'lab',     x0: 0,    z0: 0, x1: 4,    z1: 4 },
     { id: 'LAB-2', name: 'Robotics Lab',     type: 'lab',     x0: 4.5,  z0: 0, x1: 8.5,  z1: 4 },
@@ -1708,7 +1715,6 @@ body.alarm .room-bar-row .bar-fill {
   const ISO_X = Math.cos(Math.PI / 6);
   const ISO_Y = Math.sin(Math.PI / 6);
 
-  // Student pool — 20 individuals
   const ALL_STUDENTS = [
     { name: 'Aisyah Rahman', matric: 'U2001234/1', medical: 'Asthma' },
     { name: 'Kumar Selvam', matric: 'U2002345/1', medical: 'None' },
@@ -1738,15 +1744,16 @@ body.alarm .room-bar-row .bar-fill {
   let state = {
     occupants: [],
     breakGlass: false,
+    breakGlassRoom: null,
+    lastBreakGlassTime: null,
     safe: [],
     auditLog: [],
+    alerts: [],
     timeline: [],
     mySessionId: null
   };
+  let timeOffset = 0;
 
-  // ================================================================
-  // ELEMENTS
-  // ================================================================
   const $ = (id) => document.getElementById(id);
   const channel = new BroadcastChannel(CHANNEL_NAME);
 
@@ -1769,7 +1776,7 @@ body.alarm .room-bar-row .bar-fill {
     toast.textContent = msg;
     toast.className = 'toast show' + (variant ? ' toast-' + variant : '');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('show'), 2800);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 3600);
   }
   function parseQrCode(code) {
     if (!code) return null;
@@ -1781,8 +1788,16 @@ body.alarm .room-bar-row .bar-fill {
     return ROOMS.find(r => r.id === labId);
   }
   function setMode(mode) {
-    $('modeLabel').textContent = mode === 'alarm' ? 'Break-Glass Active' : 'Normal Ops';
-    document.body.classList.toggle('alarm', mode === 'alarm');
+    if (mode === 'alarm') {
+      $('modeLabel').textContent = 'Emergency · Break-Glass';
+      document.body.classList.add('alarm');
+    } else if (mode === 'alert') {
+      $('modeLabel').textContent = 'Alert Level Active';
+      document.body.classList.remove('alarm');
+    } else {
+      $('modeLabel').textContent = 'Normal Ops · All Green';
+      document.body.classList.remove('alarm');
+    }
   }
   function getMySession() {
     if (!state.mySessionId) return null;
@@ -1805,8 +1820,11 @@ body.alarm .room-bar-row .bar-fill {
         state = {
           occupants: parsed.occupants || [],
           breakGlass: parsed.breakGlass || false,
+          breakGlassRoom: parsed.breakGlassRoom || null,
+          lastBreakGlassTime: parsed.lastBreakGlassTime || null,
           safe: parsed.safe || [],
           auditLog: parsed.auditLog || [],
+          alerts: parsed.alerts || [],
           timeline: parsed.timeline || [],
           mySessionId: parsed.mySessionId || null
         };
@@ -1816,6 +1834,100 @@ body.alarm .room-bar-row .bar-fill {
   function broadcast() {
     channel.postMessage({ type: 'state', state: state });
     saveState();
+  }
+
+  // ================================================================
+  // TIMERS & STATUS LOGIC
+  // ================================================================
+  function updateTimers() {
+    if (state.breakGlass) return;
+    let changed = false;
+    const simNow = Date.now() + timeOffset;
+    const realNow = Date.now();
+
+    state.occupants.forEach(o => {
+      if (o.safe) return;
+      const elapsed = simNow - o.checkInTime;
+
+      // Step 1: 1 hour without checkout -> send push notification to student
+      if (elapsed >= HOUR && !o.notified) {
+        o.notified = true;
+        addAudit('1h push notification sent \u00b7 ' + o.room, false);
+        showToast('Push Notification (' + o.room + '): Checked in for 1h. Please verify presence on website.', 'amber');
+        changed = true;
+      }
+
+      // Step 2: 30 mins after push notification (1.5h total) without verifying -> building turns yellow
+      if (elapsed >= HOUR + HALF_HOUR && !o.yellow) {
+        o.yellow = true;
+        addAudit('1.5h unverified \u00b7 ' + o.room + ' turned YELLOW', false);
+        showToast(o.room + ' turned YELLOW (unverified 30m after push notification)', 'amber');
+        changed = true;
+      }
+
+      // Step 3: 30 mins after yellow (2.0h total) without verifying -> building turns red + Alert Level to Admin
+      if (elapsed >= HOUR + HALF_HOUR + HALF_HOUR && !o.red) {
+        o.red = true;
+        addAudit('2h unverified \u00b7 ' + o.room + ' turned RED (Alert to Admin)', false);
+        showToast('ALERT LEVEL: ' + o.room + ' turned RED. Admin notified to check location.', 'danger');
+
+        const hasAlert = state.alerts.some(a => a.roomId === o.room && a.type === 'timer' && !a.escalated);
+        if (!hasAlert) {
+          state.alerts.push({
+            id: 'AL-' + randomHex(4).toUpperCase(),
+            roomId: o.room,
+            type: 'timer',
+            timestamp: simNow,
+            lastSporadicRealTime: realNow,
+            lastSporadicSimTime: simNow,
+            sporadicCount: 1,
+            adminChecked: false,
+            emergencyServicesCalled: false,
+            adminApproved: false,
+            respondersApproved: false,
+            escalated: false,
+            reporter: 'Automated 2h Timer'
+          });
+        }
+        changed = true;
+      }
+    });
+
+    // Sporadic alerts to Admin if a red building alert remains unaddressed / unverified
+    state.alerts.forEach(a => {
+      if (a.type === 'timer' && !a.escalated) {
+        const realElapsed = realNow - (a.lastSporadicRealTime || realNow);
+        const simElapsed = simNow - (a.lastSporadicSimTime || simNow);
+        if (realElapsed >= SPORADIC_REAL_MS || simElapsed >= HALF_HOUR) {
+          a.lastSporadicRealTime = realNow;
+          a.lastSporadicSimTime = simNow;
+          a.sporadicCount = (a.sporadicCount || 1) + 1;
+          addAudit('sporadic alert #' + a.sporadicCount + ' to admin \u00b7 ' + a.roomId + ' still RED', false);
+          showToast('Sporadic Admin Alert #' + a.sporadicCount + ': ' + a.roomId + ' remains RED & unverified!', 'danger');
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) renderAll();
+  }
+
+  function advanceTime(ms) {
+    timeOffset += ms;
+    const mins = Math.floor(timeOffset / 60000);
+    $('timeOffsetDisplay').textContent = mins + 'm';
+    updateTimers();
+    renderAll();
+  }
+
+  // Initially all buildings are green ('green'), transitioning to 'yellow', 'red', or 'escalated'
+  function getRoomStatus(roomId) {
+    if (state.breakGlass && (state.breakGlassRoom === roomId || state.breakGlassRoom === 'ALL')) return 'escalated';
+    if (state.alerts.some(a => a.roomId === roomId && !a.escalated)) return 'red';
+    const occs = state.occupants.filter(o => o.room === roomId && !o.safe);
+    if (occs.some(o => o.red)) return 'red';
+    if (occs.some(o => o.yellow)) return 'yellow';
+    return 'green';
   }
 
   // ================================================================
@@ -1845,7 +1957,6 @@ body.alarm .room-bar-row .bar-fill {
     canvas.style.width = canvasW + 'px';
     canvas.style.height = canvasH + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // Campus now spans 17.5 (X) x 10 (Z) + walls
     const projectedWidth = 24;
     const projectedHeight = 15;
     scale = Math.min(canvasW / projectedWidth, canvasH / projectedHeight) * 1.02;
@@ -1871,17 +1982,29 @@ body.alarm .room-bar-row .bar-fill {
   }
 
   function drawRoom(room) {
-    const isAlarm = state.breakGlass;
-    const isLab = room.type === 'lab';
+    const status = getRoomStatus(room.id);
 
-    // Floor tint based on room type
     let floorColor;
-    if (isAlarm) {
-      floorColor = 'rgba(220, 38, 38, 0.055)';
-    } else if (isLab) {
-      floorColor = 'rgba(2, 132, 199, 0.055)';
+    let wallColor;
+    let strokeColor;
+
+    if (status === 'escalated') {
+      floorColor = 'rgba(220, 38, 38, 0.42)';
+      wallColor = 'rgba(254, 202, 202, 0.92)';
+      strokeColor = 'rgba(220, 38, 38, 0.85)';
+    } else if (status === 'red') {
+      floorColor = 'rgba(220, 38, 38, 0.25)';
+      wallColor = 'rgba(254, 226, 226, 0.9)';
+      strokeColor = 'rgba(220, 38, 38, 0.65)';
+    } else if (status === 'yellow') {
+      floorColor = 'rgba(202, 138, 4, 0.24)';
+      wallColor = 'rgba(254, 240, 138, 0.88)';
+      strokeColor = 'rgba(202, 138, 4, 0.65)';
     } else {
-      floorColor = 'rgba(99, 102, 241, 0.055)';
+      // Initial & verified state: Green
+      floorColor = 'rgba(5, 150, 105, 0.18)';
+      wallColor = 'rgba(209, 250, 229, 0.85)';
+      strokeColor = 'rgba(5, 150, 105, 0.55)';
     }
 
     // Floor
@@ -1894,8 +2017,8 @@ body.alarm .room-bar-row .bar-fill {
     polygonPath(floorCorners);
     ctx.fillStyle = floorColor;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
     // Back wall
@@ -1906,9 +2029,9 @@ body.alarm .room-bar-row .bar-fill {
       [room.x0, WALL_H, room.z1]
     ].map(p => isoProject(p[0], p[1], p[2]));
     polygonPath(backWall);
-    ctx.fillStyle = isAlarm ? 'rgba(254, 226, 226, 0.85)' : 'rgba(241, 245, 249, 0.85)';
+    ctx.fillStyle = wallColor;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.strokeStyle = strokeColor;
     ctx.stroke();
 
     // Right wall
@@ -1919,14 +2042,16 @@ body.alarm .room-bar-row .bar-fill {
       [room.x1, WALL_H, room.z0]
     ].map(p => isoProject(p[0], p[1], p[2]));
     polygonPath(rightWall);
-    ctx.fillStyle = isAlarm ? 'rgba(252, 205, 205, 0.9)' : 'rgba(226, 232, 240, 0.9)';
+    ctx.fillStyle = wallColor;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.strokeStyle = strokeColor;
     ctx.stroke();
 
-    // Room label above wall
+    // Room label
     const labelPos = isoProject((room.x0 + room.x1) / 2, WALL_H + 0.55, (room.z0 + room.z1) / 2);
-    ctx.fillStyle = isAlarm ? '#dc2626' : (isLab ? '#0284c7' : '#4338ca');
+    ctx.fillStyle = (status === 'escalated' || status === 'red')
+      ? '#dc2626'
+      : (status === 'yellow' ? '#ca8a04' : '#059669');
     ctx.font = 'bold 9px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1942,13 +2067,12 @@ body.alarm .room-bar-row .bar-fill {
       [c.x0, 0, c.z1]
     ].map(p => isoProject(p[0], p[1], p[2]));
     polygonPath(corners);
-    ctx.fillStyle = state.breakGlass ? 'rgba(220, 38, 38, 0.03)' : 'rgba(15, 23, 42, 0.025)';
+    ctx.fillStyle = state.breakGlass ? 'rgba(220, 38, 38, 0.05)' : 'rgba(5, 150, 105, 0.05)';
     ctx.fill();
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Corridor label
     const labelPos = isoProject((c.x0 + c.x1) / 2, 0.05, (c.z0 + c.z1) / 2);
     ctx.fillStyle = 'rgba(100, 116, 139, 0.6)';
     ctx.font = '7px "JetBrains Mono", monospace';
@@ -1956,7 +2080,6 @@ body.alarm .room-bar-row .bar-fill {
     ctx.textBaseline = 'middle';
     ctx.fillText('C O R R I D O R', labelPos[0], labelPos[1]);
 
-    // DK7 exit markers at both ends
     [[c.x0 + 0.4], [c.x1 - 0.4]].forEach(([ex]) => {
       const exitPos = isoProject(ex, 0, c.z1 - 0.2);
       ctx.fillStyle = '#059669';
@@ -1965,7 +2088,6 @@ body.alarm .room-bar-row .bar-fill {
       ctx.fill();
     });
 
-    // Label DK7 at right end
     const exitLabelPos = isoProject(c.x1 - 0.4, 0.2, c.z1 - 0.2);
     ctx.fillStyle = '#059669';
     ctx.font = 'bold 7px "JetBrains Mono", monospace';
@@ -1977,12 +2099,10 @@ body.alarm .room-bar-row .bar-fill {
   function getOccupantPosition(occ, idxInRoom) {
     const room = roomForLabId(occ.room);
     if (!room) {
-      // Corridor — spread along the middle
       const c = CORRIDOR;
       const t = (idxInRoom % 8) / 8;
       return [(c.x0 + 1) + (c.x1 - c.x0 - 2) * t, 0.25, (c.z0 + c.z1) / 2];
     }
-    // 2-column grid inside each room
     const cols = 2;
     const spacingX = (room.x1 - room.x0 - 1.8) / (cols - 1);
     const col = idxInRoom % cols;
@@ -2002,19 +2122,19 @@ body.alarm .room-bar-row .bar-fill {
     if (state.breakGlass) {
       color = isSafe ? '#059669' : '#dc2626';
     } else {
-      color = '#0284c7';
+      if (occ.red) color = '#dc2626';
+      else if (occ.yellow) color = '#ca8a04';
+      else color = '#059669';
     }
 
-    // Halo
-    const rgb = color === '#0284c7' ? '2, 132, 199'
-              : color === '#dc2626' ? '220, 38, 38'
+    const rgb = color === '#dc2626' ? '220, 38, 38'
+              : color === '#ca8a04' ? '202, 138, 4'
               : '5, 150, 105';
     ctx.beginPath();
     ctx.arc(sx, sy, 8, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${rgb}, 0.22)`;
     ctx.fill();
 
-    // Core dot
     ctx.beginPath();
     ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = color;
@@ -2036,11 +2156,9 @@ body.alarm .room-bar-row .bar-fill {
 
     ctx.clearRect(0, 0, canvasW, canvasH);
 
-    // Draw corridors first, then rooms, then occupants
     drawCorridor();
     ROOMS.forEach(drawRoom);
 
-    // Group occupants by room
     const byRoom = {};
     state.occupants.forEach(occ => {
       if (!byRoom[occ.room]) byRoom[occ.room] = [];
@@ -2100,8 +2218,14 @@ body.alarm .room-bar-row .bar-fill {
       : null;
     $('unaccountedValue').textContent = unaccounted === null ? '\u2014' : unaccounted;
 
-    // Mode
-    setMode(state.breakGlass ? 'alarm' : 'normal');
+    const hasUnescalatedAlert = state.alerts.some(a => !a.escalated);
+    if (state.breakGlass) {
+      setMode('alarm');
+    } else if (hasUnescalatedAlert) {
+      setMode('alert');
+    } else {
+      setMode('normal');
+    }
 
     // Session card
     const mySession = getMySession();
@@ -2117,20 +2241,131 @@ body.alarm .room-bar-row .bar-fill {
       sessionSection.style.display = 'none';
     }
 
+    // Student Push Notification Banner & Verify Button
+    const verifyBtn = $('verifyPresenceBtn');
+    const pushBanner = $('studentPushBanner');
+    const unverifiedOcc = mySession && mySession.notified ? mySession : state.occupants.find(o => o.notified);
+
+    if (unverifiedOcc && !state.breakGlass) {
+      verifyBtn.style.display = 'block';
+      pushBanner.classList.add('show');
+      if (unverifiedOcc.red) {
+        pushBanner.classList.add('danger');
+        $('pushBannerTitleText').textContent = 'Urgent Push Alert · 2h+ Unverified (' + unverifiedOcc.room + ')';
+        $('pushBannerBodyText').textContent = 'Building is now RED and an Alert Level has been sent to Campus Admin. Verify your presence immediately to turn the building back to Green.';
+      } else if (unverifiedOcc.yellow) {
+        pushBanner.classList.remove('danger');
+        $('pushBannerTitleText').textContent = 'Push Warning · 1.5h Unverified (' + unverifiedOcc.room + ')';
+        $('pushBannerBodyText').textContent = '30 minutes elapsed since push notification. Building has turned YELLOW. Verify within 30 minutes before it turns RED and alerts Admin.';
+      } else {
+        pushBanner.classList.remove('danger');
+        $('pushBannerTitleText').textContent = 'Push Notification · 1h Check-in (' + unverifiedOcc.room + ')';
+        $('pushBannerBodyText').textContent = 'You have been checked in for 1 hour without checking out. Please verify on the website within 30 minutes to keep the building Green.';
+      }
+    } else {
+      verifyBtn.style.display = 'none';
+      pushBanner.classList.remove('show', 'danger');
+    }
+
     // Locked list
     const lockedList = $('lockedList');
     if (state.occupants.length === 0) {
       lockedList.innerHTML = '<li class="empty">No occupants logged yet.</li>';
     } else {
-      lockedList.innerHTML = state.occupants.slice(0, 10).map(o =>
-        `<li><span>Token ${o.id.slice(0,12)}&hellip;</span><span class="lock-label">Encrypted</span></li>`
-      ).join('') + (state.occupants.length > 10 ? `<li class="empty">+ ${state.occupants.length - 10} more&hellip;</li>` : '');
+      lockedList.innerHTML = state.occupants.slice(0, 10).map(o => {
+        let statusBadge = '<span class="badge badge-ok" style="margin-left:6px;">Green · Verified</span>';
+        if (state.safe.indexOf(o.id) !== -1) statusBadge = '<span class="badge badge-ok" style="margin-left:6px;">Safe at DK7</span>';
+        else if (o.red) statusBadge = '<span class="badge badge-danger" style="margin-left:6px;">Red · Alert Sent</span>';
+        else if (o.yellow) statusBadge = '<span class="badge badge-yellow" style="margin-left:6px;">Yellow · Unverified 1.5h</span>';
+        else if (o.notified) statusBadge = '<span class="badge badge-accent" style="margin-left:6px;">Push Sent (1h)</span>';
+
+        return `<li><span>Token ${o.id.slice(0,8)}&hellip; (${o.room})</span>${statusBadge}</li>`;
+      }).join('') + (state.occupants.length > 10 ? `<li class="empty">+ ${state.occupants.length - 10} more&hellip;</li>` : '');
     }
 
-    // Muster
+    // Alerts List (Dual-Authority Escalation Workflow)
+    const alertsList = $('alertsList');
+    if (state.alerts.length === 0) {
+      alertsList.innerHTML = '<div class="body-text" style="color:var(--muted);font-style:italic;">No active alerts. All buildings green.</div>';
+    } else {
+      alertsList.innerHTML = state.alerts.map(a => {
+        const isEscalated = a.escalated;
+        const cardClass = isEscalated ? 'alert-card alert-danger' : 'alert-card alert-warning';
+        const title = a.type === 'manual'
+          ? 'Manual Emergency Report — ALERT LEVEL'
+          : '2-Hour Unverified Occupant — ALERT LEVEL';
+        const time = new Date(a.timestamp).toLocaleTimeString('en-GB');
+
+        if (isEscalated) {
+          return `<div class="${cardClass}">
+            <div class="alert-header-row">
+              <div class="alert-title">${a.roomId} · ESCALATED TO EMERGENCY LEVEL</div>
+              <span class="badge badge-danger">Break-Glass Active</span>
+            </div>
+            <div class="alert-meta">Authorized jointly by Campus Admin &amp; Emergency Responders at ${state.lastBreakGlassTime || time}</div>
+          </div>`;
+        }
+
+        if (a.type === 'manual') {
+          // Requirement 1: Student reported simultaneously to Admin & Emergency Responders -> Alert Level -> Joint Escalation -> Break-Glass
+          return `<div class="${cardClass}">
+            <div class="alert-header-row">
+              <div class="alert-title">${title} (${a.roomId})</div>
+              <span class="badge badge-yellow">Alert Level Only</span>
+            </div>
+            <div class="alert-meta">Sent simultaneously to Administrators &amp; Emergency Responders at ${time}. Both parties must approve to escalate to Emergency Level &amp; Break-Glass.</div>
+            <div class="sig-row">
+              <span class="sig-pill ${a.adminApproved ? 'signed' : ''}">1. Admin (Security/Staff): ${a.adminApproved ? 'APPROVED \u2713' : 'Pending'}</span>
+              <span class="sig-pill ${a.respondersApproved ? 'signed' : ''}">2. Emergency Responders: ${a.respondersApproved ? 'APPROVED \u2713' : 'Pending'}</span>
+            </div>
+            <div class="alert-actions">
+              <button class="btn" onclick="window.approveEscalation('${a.id}', 'admin')" ${a.adminApproved ? 'disabled' : ''}>
+                ${a.adminApproved ? 'Admin Approved \u2713' : 'Admin: Approve Escalation'}
+              </button>
+              <button class="btn" onclick="window.approveEscalation('${a.id}', 'responders')" ${a.respondersApproved ? 'disabled' : ''}>
+                ${a.respondersApproved ? 'Responders Approved \u2713' : 'Responders: Approve Escalation'}
+              </button>
+            </div>
+          </div>`;
+        } else {
+          // Requirement 2: 2-hour timer Red building -> Alert sent to Admin -> Admin can go check, Student can verify (turns green), Admin can call Emergency Services to escalate together, or do nothing (remains red + sporadic alerts)
+          return `<div class="${cardClass}">
+            <div class="alert-header-row">
+              <div class="alert-title">${title} (${a.roomId})</div>
+              <span class="badge badge-danger">Sporadic Alerts: #${a.sporadicCount || 1}</span>
+            </div>
+            <div class="alert-meta">
+              Building turned RED at ${time}. ${a.adminChecked ? 'Admin physically checked location.' : 'Admin can go check or wait for student verification.'}
+              If unaddressed, building stays RED and sporadic alerts continue.
+            </div>
+            <div class="sig-row">
+              <span class="sig-pill ${a.adminChecked ? 'signed' : ''}">Admin Physical Check: ${a.adminChecked ? 'Checked \u2713' : 'Not Checked'}</span>
+              <span class="sig-pill ${a.adminApproved ? 'signed' : ''}">Admin Escalation: ${a.adminApproved ? 'Called &amp; Signed \u2713' : 'Idle'}</span>
+              <span class="sig-pill ${a.respondersApproved ? 'signed' : ''}">Emergency Services: ${a.respondersApproved ? 'Confirmed \u2713' : 'Standby'}</span>
+            </div>
+            <div class="alert-actions">
+              <button class="btn" onclick="window.adminCheckRoom('${a.id}')" ${a.adminChecked ? 'disabled' : ''}>
+                ${a.adminChecked ? 'Location Checked \u2713' : 'Admin: Go & Check Location'}
+              </button>
+              <button class="btn" onclick="window.callEmergencyServices('${a.id}')" ${a.emergencyServicesCalled ? 'disabled' : ''}>
+                ${a.emergencyServicesCalled ? 'Emergency Services Called \u2713' : 'Admin: Call Emergency Services to Escalate'}
+              </button>
+              ${a.emergencyServicesCalled ? `
+                <button class="btn btn-danger" style="width:auto;padding:6px 12px;" onclick="window.approveEscalation('${a.id}', 'responders')">
+                  Emergency Responders: Co-Sign &amp; Break-Glass
+                </button>
+              ` : ''}
+            </div>
+          </div>`;
+        }
+      }).join('');
+    }
+
+    // Muster & Break-Glass Manifest
     if (state.breakGlass) {
+      $('studentReceipt').classList.add('show');
+      $('receiptTime').textContent = state.lastBreakGlassTime || new Date().toLocaleTimeString('en-GB');
       $('musterSection').style.display = 'block';
-      $('breakGlassBtn').disabled = true;
       const sorted = [...state.occupants].sort((a, b) => {
         const aS = state.safe.indexOf(a.id) !== -1 ? 1 : 0;
         const bS = state.safe.indexOf(b.id) !== -1 ? 1 : 0;
@@ -2141,18 +2376,16 @@ body.alarm .room-bar-row .bar-fill {
         return `<div class="muster-row">
           <div>
             <div class="muster-name">${o.name}<span class="muster-room">${o.room}</span></div>
-            <div class="muster-meta">${o.matric} \u00b7 ${o.medical}</div>
+            <div class="muster-meta">${o.matric} \u00b7 Medical: ${o.medical}</div>
           </div>
           <span class="badge ${safe ? 'badge-ok' : 'badge-danger'}">${safe ? 'Safe at DK7' : 'Unaccounted'}</span>
         </div>`;
       }).join('') || '<p class="body-text">No active tokens.</p>';
     } else {
+      $('studentReceipt').classList.remove('show');
       $('musterSection').style.display = 'none';
-      $('breakGlassBtn').disabled = false;
     }
 
-    // Receipt + safe section
-    $('studentReceipt').classList.toggle('show', state.breakGlass);
     const showSafeSection = state.breakGlass && !!mySession;
     $('studentSafeSection').style.display = showSafeSection ? 'block' : 'none';
 
@@ -2195,7 +2428,14 @@ body.alarm .room-bar-row .bar-fill {
       const bar = row.querySelector('.bar-fill');
       const val = row.querySelector('.bar-value');
       const pct = (counts[lab] / max) * 100;
+
+      const status = getRoomStatus(lab);
+      let barColor = 'linear-gradient(90deg, var(--safe), #047857)';
+      if (status === 'red' || status === 'escalated') barColor = 'linear-gradient(90deg, var(--danger), #b91c1c)';
+      else if (status === 'yellow') barColor = 'linear-gradient(90deg, var(--yellow), #a16207)';
+
       bar.style.width = pct + '%';
+      bar.style.background = barColor;
       val.textContent = counts[lab];
     });
   }
@@ -2271,20 +2511,26 @@ body.alarm .room-bar-row .bar-fill {
     const base = ALL_STUDENTS[state.occupants.length];
     if (!base) return null;
 
+    const now = Date.now() + timeOffset;
     const occ = {
       id: randomHex(16),
       name: base.name,
       matric: base.matric,
       medical: base.medical,
       room: labId || 'LAB-1',
-      safe: false
+      safe: false,
+      checkInTime: now,
+      notified: false,
+      yellow: false,
+      red: false,
+      isMine: !!isMine
     };
     state.occupants.push(occ);
     state.timeline.push(state.occupants.length);
     if (isMine) {
       state.mySessionId = occ.id;
     }
-    addAudit('anonymous check-in \u00b7 ' + occ.room, false);
+    addAudit('anonymous check-in \u00b7 ' + occ.room + ' (Green)', false);
     return occ;
   }
 
@@ -2302,16 +2548,22 @@ body.alarm .room-bar-row .bar-fill {
     }
   }
 
-  function logOut() {
+  function openLogoutModal() {
     const mySession = getMySession();
     if (!mySession) return;
-    if (!confirm('Log out of ' + mySession.room + '? Your session will be removed from the security dashboard.')) {
-      return;
-    }
+    $('logoutModalSub').textContent = 'check out of ' + mySession.room;
+    $('logoutConfirmModal').classList.add('show');
+  }
+
+  function confirmLogOut() {
+    $('logoutConfirmModal').classList.remove('show');
+    const mySession = getMySession();
+    if (!mySession) return;
 
     const room = mySession.room;
     state.occupants = state.occupants.filter(o => o.id !== mySession.id);
     state.safe = state.safe.filter(id => id !== mySession.id);
+    state.alerts = state.alerts.filter(a => !(a.roomId === room && a.type === 'timer' && !a.escalated));
     state.mySessionId = null;
 
     addAudit('check-out \u00b7 ' + room, false);
@@ -2319,32 +2571,112 @@ body.alarm .room-bar-row .bar-fill {
     showToast('Checked out \u00b7 ' + room, 'accent');
   }
 
-  function breakGlass() {
-    if (state.occupants.length === 0) {
-      showToast('No occupants to muster', 'danger');
+  function verifyPresence() {
+    const now = Date.now() + timeOffset;
+    const target = getMySession() || state.occupants.find(o => o.notified);
+    if (!target) return;
+
+    const targetRoom = target.room;
+    // Reset all occupants in that room to verified green state
+    state.occupants.forEach(o => {
+      if (o.room === targetRoom) {
+        o.checkInTime = now;
+        o.notified = false;
+        o.yellow = false;
+        o.red = false;
+      }
+    });
+
+    // Remove unescalated timer alerts for this room so it turns Green again
+    state.alerts = state.alerts.filter(a => !(a.roomId === targetRoom && a.type === 'timer' && !a.escalated));
+
+    addAudit('student verified on website \u00b7 ' + targetRoom + ' turned GREEN', false);
+    renderAll();
+    showToast('Presence verified! ' + targetRoom + ' is now GREEN again.', 'safe');
+  }
+
+  // Requirement 1: Student manually reports an emergency simultaneously to Admin & Emergency Responders (Alert Level first)
+  function reportEmergency() {
+    let mySession = getMySession();
+    if (!mySession) {
+      mySession = checkIn('LAB-1', true);
+    }
+    const now = Date.now() + timeOffset;
+    const existing = state.alerts.find(a => a.roomId === mySession.room && a.type === 'manual' && !a.escalated);
+    if (existing) {
+      showToast('Alert Level already active for ' + mySession.room + ' awaiting escalation.', 'amber');
       return;
     }
-    state.breakGlass = true;
-    $('eventId').textContent = 'BG-' + randomHex(8).toUpperCase();
-    $('receiptTime').textContent = new Date().toLocaleTimeString('en-GB');
-    addAudit('break-glass decryption \u00b7 blok L \u00b7 dual-sig', false);
+    state.alerts.push({
+      id: 'AL-' + randomHex(4).toUpperCase(),
+      roomId: mySession.room,
+      type: 'manual',
+      timestamp: now,
+      adminApproved: false,
+      respondersApproved: false,
+      escalated: false,
+      reporter: 'Student Manual Report'
+    });
+    addAudit('ALERT LEVEL: manual report to Admin & Responders \u00b7 ' + mySession.room, false);
     renderAll();
-    showToast('Break-Glass activated', 'danger');
+    showToast('Alert Level sent simultaneously to Admin & Emergency Responders', 'amber');
   }
+
+  window.adminCheckRoom = function(alertId) {
+    const alert = state.alerts.find(a => a.id === alertId);
+    if (!alert) return;
+    alert.adminChecked = true;
+    addAudit('admin dispatched to check ' + alert.roomId, false);
+    renderAll();
+    showToast('Admin inspecting ' + alert.roomId + '. Awaiting student verification or escalation.', 'accent');
+  };
+
+  window.callEmergencyServices = function(alertId) {
+    const alert = state.alerts.find(a => a.id === alertId);
+    if (!alert) return;
+    alert.emergencyServicesCalled = true;
+    alert.adminApproved = true;
+    addAudit('admin called emergency services for ' + alert.roomId, false);
+    renderAll();
+    showToast('Emergency Services contacted for ' + alert.roomId + '. Awaiting Responder co-signature.', 'amber');
+  };
+
+  window.approveEscalation = function(alertId, role) {
+    const alert = state.alerts.find(a => a.id === alertId);
+    if (!alert) return;
+
+    if (role === 'admin') {
+      alert.adminApproved = true;
+      addAudit('Admin approved escalation \u00b7 ' + alert.roomId, false);
+    } else if (role === 'responders') {
+      alert.respondersApproved = true;
+      addAudit('Emergency Responders approved escalation \u00b7 ' + alert.roomId, false);
+    }
+
+    // Only trigger Emergency Level & Break-Glass when BOTH Admin and Emergency Responders agree
+    if (alert.adminApproved && alert.respondersApproved) {
+      alert.escalated = true;
+      state.breakGlass = true;
+      state.breakGlassRoom = alert.roomId;
+      state.lastBreakGlassTime = new Date().toLocaleTimeString('en-GB');
+      addAudit('BREAK-GLASS ACTIVATED \u00b7 Joint Admin + Responder Escalation \u00b7 ' + alert.roomId, false);
+      renderAll();
+      showToast('Emergency Escalated! Break-Glass activated for ' + alert.roomId, 'danger');
+    } else {
+      renderAll();
+      showToast('Signature recorded. Waiting for counter-party to escalate to Break-Glass.', 'accent');
+    }
+  };
 
   function markSafe(id) {
     if (state.safe.indexOf(id) !== -1) return;
     state.safe.push(id);
     const occ = state.occupants.find(o => o.id === id);
     if (occ) {
+      occ.safe = true;
       addAudit('muster confirmation \u00b7 ' + occ.matric, false);
       renderAll();
     }
-  }
-
-  function markFirstUnsafe() {
-    const first = state.occupants.find(o => state.safe.indexOf(o.id) === -1);
-    if (first) markSafe(first.id);
   }
 
   function markAllSafe() {
@@ -2352,30 +2684,37 @@ body.alarm .room-bar-row .bar-fill {
     state.occupants.forEach(o => {
       if (state.safe.indexOf(o.id) === -1) {
         state.safe.push(o.id);
+        o.safe = true;
         count++;
       }
     });
     if (count > 0) {
       addAudit('bulk muster \u00b7 ' + count + ' students safe', false);
       renderAll();
-      showToast(count + ' marked safe', 'safe');
+      showToast(count + ' marked safe at DK7', 'safe');
     }
   }
 
   function reset() {
+    clearDemo();
+    demoRunning = false;
     state = {
       occupants: [],
       breakGlass: false,
+      breakGlassRoom: null,
+      lastBreakGlassTime: null,
       safe: [],
       auditLog: [],
+      alerts: [],
       timeline: [],
       mySessionId: null
     };
-    $('eventId').textContent = '\u2014';
+    timeOffset = 0;
+    $('timeOffsetDisplay').textContent = '0m';
     $('receiptTime').textContent = '\u2014';
     setMode('normal');
     renderAll();
-    showToast('Reset');
+    showToast('System reset · All buildings Green', 'safe');
   }
 
   function simulateN(n) {
@@ -2389,7 +2728,7 @@ body.alarm .room-bar-row .bar-fill {
     }
     if (added > 0) {
       renderAll();
-      showToast('+' + added + ' students', 'accent');
+      showToast('+' + added + ' anonymous students checked in', 'safe');
     } else {
       showToast('Roster full', 'danger');
     }
@@ -2412,25 +2751,49 @@ body.alarm .room-bar-row .bar-fill {
     demoRunning = true;
     clearDemo();
     reset();
+    demoRunning = true;
 
-    // First student logs in as "mine" so the student wallet has a session
     schedule(() => {
-      const occ = checkIn('LAB-1', true);
+      checkIn('LAB-1', true);
       renderAll();
+      showToast('Student checked into LAB-1 (Building is Green)', 'safe');
     }, 600);
-    schedule(() => { checkIn('LAB-2', false); renderAll(); }, 1400);
-    schedule(() => { checkIn('LAB-3', false); renderAll(); }, 2200);
-    schedule(() => { checkIn('LH-1', false); renderAll(); }, 3000);
-    schedule(() => { checkIn('LH-2', false); renderAll(); }, 3800);
-    schedule(() => breakGlass(), 5800);
+
+    schedule(() => {
+      advanceTime(HOUR);
+    }, 2400);
+
+    schedule(() => {
+      advanceTime(HALF_HOUR);
+    }, 4400);
+
+    schedule(() => {
+      advanceTime(HALF_HOUR);
+    }, 6400);
+
+    schedule(() => {
+      verifyPresence();
+    }, 8600);
+
+    schedule(() => {
+      reportEmergency();
+    }, 10600);
+
+    schedule(() => {
+      const alert = state.alerts.find(a => !a.escalated);
+      if (alert) window.approveEscalation(alert.id, 'admin');
+    }, 12400);
+
+    schedule(() => {
+      const alert = state.alerts.find(a => !a.escalated);
+      if (alert) window.approveEscalation(alert.id, 'responders');
+    }, 14200);
+
     schedule(() => {
       const mySession = getMySession();
       if (mySession) markSafe(mySession.id);
-    }, 8200);
-    schedule(() => markFirstUnsafe(), 9600);
-    schedule(() => markFirstUnsafe(), 11000);
-    schedule(() => { demoRunning = false; }, 13000);
-    showToast('Auto Demo started', 'accent');
+      demoRunning = false;
+    }, 16200);
   }
 
   // ================================================================
@@ -2513,13 +2876,17 @@ body.alarm .room-bar-row .bar-fill {
   function handleQrResult(labId) {
     const existing = getMySession();
     if (existing) {
-      // Re-scan: update room
       existing.room = labId;
       existing.safe = false;
+      existing.checkInTime = Date.now() + timeOffset;
+      existing.notified = false;
+      existing.yellow = false;
+      existing.red = false;
       state.safe = state.safe.filter(id => id !== existing.id);
-      addAudit('re-scan \u00b7 ' + labId, false);
+      state.alerts = state.alerts.filter(a => !(a.roomId === labId && a.type === 'timer' && !a.escalated));
+      addAudit('re-scan \u00b7 ' + labId + ' (Green)', false);
       renderAll();
-      showToast('Re-scanned at ' + labId, 'accent');
+      showToast('Checked in at ' + labId + ' (Timer reset)', 'safe');
       return;
     }
 
@@ -2528,7 +2895,7 @@ body.alarm .room-bar-row .bar-fill {
       const room = roomForLabId(labId);
       const roomName = room ? room.name : labId;
       renderAll();
-      showToast('Registered at ' + labId + ' \u00b7 ' + roomName, 'accent');
+      showToast('Checked in at ' + labId + ' \u00b7 ' + roomName, 'safe');
       if (window.innerWidth <= 900) {
         const tab = document.querySelector('.mobile-tabs button[data-view="student"]');
         if (tab) tab.click();
@@ -2568,17 +2935,25 @@ body.alarm .room-bar-row .bar-fill {
       $('qrRefModal').classList.remove('show');
     });
 
-    $('logoutBtn').addEventListener('click', logOut);
+    $('logoutBtn').addEventListener('click', openLogoutModal);
+    $('cancelLogoutBtn').addEventListener('click', () => {
+      $('logoutConfirmModal').classList.remove('show');
+    });
+    $('confirmLogoutBtn').addEventListener('click', confirmLogOut);
+
+    $('verifyPresenceBtn').addEventListener('click', verifyPresence);
+    $('reportEmergencyBtn').addEventListener('click', reportEmergency);
 
     $('studentMarkSafeBtn').addEventListener('click', () => {
       const mySession = getMySession();
       if (mySession) markSafe(mySession.id);
     });
 
-    $('breakGlassBtn').addEventListener('click', breakGlass);
     $('simulate5Btn').addEventListener('click', () => simulateN(5));
-    $('simulate10Btn').addEventListener('click', () => simulateN(10));
     $('markAllSafeBtn').addEventListener('click', markAllSafe);
+
+    $('advance30mBtn').addEventListener('click', () => advanceTime(HALF_HOUR));
+    $('advance1hBtn').addEventListener('click', () => advanceTime(HOUR));
 
     $('cancelScanBtn').addEventListener('click', stopScanner);
     $('scanManualBtn').addEventListener('click', () => {
@@ -2628,8 +3003,11 @@ body.alarm .room-bar-row .bar-fill {
           state = {
             occupants: parsed.occupants || [],
             breakGlass: parsed.breakGlass || false,
+            breakGlassRoom: parsed.breakGlassRoom || null,
+            lastBreakGlassTime: parsed.lastBreakGlassTime || null,
             safe: parsed.safe || [],
             auditLog: parsed.auditLog || [],
+            alerts: parsed.alerts || [],
             timeline: parsed.timeline || [],
             mySessionId: parsed.mySessionId || null
           };
@@ -2645,6 +3023,9 @@ body.alarm .room-bar-row .bar-fill {
     setInterval(() => {
       $('tokenCode').textContent = shortToken();
     }, 30000);
+
+    // Background timer for real-time checks & sporadic alerts
+    setInterval(updateTimers, 4000);
   }
 
   // ================================================================
